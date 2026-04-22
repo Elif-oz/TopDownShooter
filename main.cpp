@@ -2,11 +2,11 @@
 
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode(800, 600), "Top-Down Shooter - Ilk Deneme");
+    sf::RenderWindow window(sf::VideoMode(1280, 720), "Top-Down Shooter - Ilk Deneme");
 
     sf::CircleShape oyuncu(50.f);
-    oyuncu.setFillColor(sf::Color::Blue);
-    oyuncu.setPosition(350.f, 250.f);
+    oyuncu.setFillColor(sf::Color::Yellow);
+    oyuncu.setPosition(640.f, 360.f);
 
     while (window.isOpen())
     {
@@ -35,6 +35,24 @@ int main()
         {
             oyuncu.move(hiz, 0.f);
         }
+
+        sf::Vector2f pozisyon = oyuncu.getPosition();
+        sf::Vector2u pencereBoyutu = window.getSize();
+
+        if (pozisyon.x < 0.f) {
+            pozisyon.x = 0.f;
+        }
+        if (pozisyon.y < 0.f) {
+            pozisyon.y = 0.f;
+        }
+        if (pozisyon.x > pencereBoyutu.x - 100.f) {
+            pozisyon.x = pencereBoyutu.x - 100.f;
+        }
+        if (pozisyon.y > pencereBoyutu.y - 100.f) {
+            pozisyon.y = pencereBoyutu.y - 100.f;
+        }
+
+        oyuncu.setPosition(pozisyon);
 
 
         window.clear();
