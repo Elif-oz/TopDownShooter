@@ -64,8 +64,8 @@ int main()
 
 
 
-        sf::Vector2i farePozisyonuInt = sf::Mouse::getPosition(window);
-        sf::Vector2f farePozisyonu(farePozisyonuInt.x, farePozisyonuInt.y); // Int'ten Float'a çevirme
+        sf::Vector2i fareFiziksel = sf::Mouse::getPosition(window);
+        sf::Vector2f farePozisyonu = window.mapPixelToCoords(fareFiziksel);
 
         //Oyuncu ile fare arasýndaki uzaklýk
         float dx = farePozisyonu.x - pozisyon.x;
