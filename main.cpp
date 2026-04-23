@@ -5,7 +5,7 @@ int main()
     sf::RenderWindow window(sf::VideoMode(1280, 720), "Top-Down Shooter - Ilk Deneme");
 
     sf::CircleShape oyuncu(50.f);
-    oyuncu.setFillColor(sf::Color::Yellow);
+    oyuncu.setFillColor(sf::Color::Blue);
     oyuncu.setPosition(640.f, 360.f);
 
     while (window.isOpen())
@@ -17,7 +17,7 @@ int main()
                 window.close();
         }
 
-        float hiz = 0.5f;
+        float hiz = 0.2f;
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
         {
@@ -37,20 +37,28 @@ int main()
         }
 
         sf::Vector2f pozisyon = oyuncu.getPosition();
-        sf::Vector2u pencereBoyutu = window.getSize();
+
+
+        float karakterGenislik = oyuncu.getGlobalBounds().width;
+        float karakterYukseklik = oyuncu.getGlobalBounds().height;
+
 
         if (pozisyon.x < 0.f) {
             pozisyon.x = 0.f;
         }
+
         if (pozisyon.y < 0.f) {
             pozisyon.y = 0.f;
         }
-        if (pozisyon.x > pencereBoyutu.x - 100.f) {
-            pozisyon.x = pencereBoyutu.x - 100.f;
+
+        if (pozisyon.x > 1280.f - karakterGenislik) {
+            pozisyon.x = 1280.f - karakterGenislik;
         }
-        if (pozisyon.y > pencereBoyutu.y - 100.f) {
-            pozisyon.y = pencereBoyutu.y - 100.f;
+
+        if (pozisyon.y > 720.f - karakterYukseklik) {
+            pozisyon.y = 720.f - karakterYukseklik;
         }
+
 
         oyuncu.setPosition(pozisyon);
 
