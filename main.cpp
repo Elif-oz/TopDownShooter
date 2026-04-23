@@ -1,12 +1,15 @@
 #include <SFML/Graphics.hpp>
+#include <cmath>
 
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode(1280, 720), "Top-Down Shooter - Ilk Deneme");
+    sf::RenderWindow window(sf::VideoMode(1280, 720), "Top-Down Shooter");
 
-    sf::CircleShape oyuncu(50.f);
-    oyuncu.setFillColor(sf::Color::Blue);
+    sf::CircleShape oyuncu(50.f, 3);
+    oyuncu.setFillColor(sf::Color::Green);
     oyuncu.setPosition(640.f, 360.f);
+    sf::FloatRect bounds = oyuncu.getLocalBounds();
+    oyuncu.setOrigin(bounds.left + bounds.width / 2.0f, bounds.top + bounds.height / 2.f);
 
     while (window.isOpen())
     {
@@ -36,32 +39,44 @@ int main()
             oyuncu.move(hiz, 0.f);
         }
 
+
+
+        sf::FloatRect sinirlar = oyuncu.getGlobalBounds();
         sf::Vector2f pozisyon = oyuncu.getPosition();
 
-
-        float karakterGenislik = oyuncu.getGlobalBounds().width;
-        float karakterYukseklik = oyuncu.getGlobalBounds().height;
-
-
-        if (pozisyon.x < 0.f) {
-            pozisyon.x = 0.f;
+        if (sinirlar.left < 0.f) {
+            pozisyon.x -= sinirlar.left; // Ne kadar eksiye düþtüyse, o kadar saða it
         }
 
-        if (pozisyon.y < 0.f) {
-            pozisyon.y = 0.f;
+        if (sinirlar.top < 0.f) {
+            pozisyon.y -= sinirlar.top;
         }
-
-        if (pozisyon.x > 1280.f - karakterGenislik) {
-            pozisyon.x = 1280.f - karakterGenislik;
+        // Sað Duvar (Sol kenar + Geniþlik = Sað kenar)
+        if (sinirlar.left + sinirlar.width > 1280.f) {
+            pozisyon.x -= (sinirlar.left + sinirlar.width - 1280.f); // Taþtýðý miktar kadar sola it
         }
-
-        if (pozisyon.y > 720.f - karakterYukseklik) {
-            pozisyon.y = 720.f - karakterYukseklik;
+        // Alt Duvar (Üst kenar + Yükseklik = Alt kenar)
+        if (sinirlar.top + sinirlar.height > 720.f) {
+            pozisyon.y -= (sinirlar.top + sinirlar.height - 720.f); // Taþtýðý miktar kadar yukarý it
         }
-
 
         oyuncu.setPosition(pozisyon);
 
+
+
+        sf::Vector2i farePozisyonuInt = sf::Mouse::getPosition(window);
+        sf::Vector2f farePozisyonu(farePozisyonuInt.x, farePozisyonuInt.y); // Int'ten Float'a çevirme
+
+        //Oyuncu ile fare arasýndaki uzaklýk
+        float dx = farePozisyonu.x - pozisyon.x;
+        float dy = farePozisyonu.y - pozisyon.y;
+
+        // Radyan cinsinden bulunup dereceye çevirme
+        float aci = std::atan2(dy, dx) * 180.f / 3.14159265f;
+
+
+        //SFML'de üçgenin ucu varsayýlan olarak yukarý baktýðý için +90 derece
+        oyuncu.setRotation(aci + 90.f);
 
         window.clear();
         window.draw(oyuncu);
