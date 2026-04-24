@@ -15,7 +15,10 @@ int main()
     std::vector<Mermi> mermiler;
     sf::Clock atesZamanlayici;
 
-    float mermiHizi = 0.9f;
+    sf::Clock dtSaati;
+    float oyuncuHizi = 500.f;
+
+    float mermiHizi = 800.f;
 
     sf::CircleShape oyuncu(50.f, 3);
     oyuncu.setFillColor(sf::Color::Green);
@@ -25,6 +28,8 @@ int main()
 
     while (window.isOpen())
     {
+        float dt = dtSaati.restart().asSeconds();
+
         sf::Event event;
         while (window.pollEvent(event))
         {
@@ -32,23 +37,22 @@ int main()
                 window.close();
         }
 
-        float hiz = 0.2f;
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
         {
-            oyuncu.move(0.f, -hiz);
+            oyuncu.move(0.f, -oyuncuHizi * dt);
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
         {
-            oyuncu.move(0.f, hiz);
+            oyuncu.move(0.f, oyuncuHizi * dt);
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
         {
-            oyuncu.move(-hiz, 0.f);
+            oyuncu.move(-oyuncuHizi * dt, 0.f);
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
         {
-            oyuncu.move(hiz, 0.f);
+            oyuncu.move(oyuncuHizi * dt, 0.f);
         }
 
 
@@ -111,13 +115,12 @@ int main()
         }
 
         for (size_t i = 0; i < mermiler.size(); i++) {
-            mermiler[i].sekil.move(mermiler[i].yonVeHiz);
+            mermiler[i].sekil.move(mermiler[i].yonVeHiz * dt);
 
             sf::Vector2f mermiPoz = mermiler[i].sekil.getPosition();
 
-            // Eger mermi ekranin sinirlarindan tamamen ciktiysa
             if (mermiPoz.x < 0.f || mermiPoz.x > 1280.f || mermiPoz.y < 0.f || mermiPoz.y > 720.f) {
-                // Mermiyi listeden tamamen yok et
+
                 mermiler.erase(mermiler.begin() + i);
 
                 //Liste sola kaydiği icin indeksi geri alma
