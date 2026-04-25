@@ -2,29 +2,41 @@
 #include <cmath>
 #include <vector>
 #include <iostream>
+#include <ctime>
+#include <cstdlib>
 
 struct Mermi {
-sf::CircleShape sekil;
-sf::Vector2f yonVeHiz;
+ sf::CircleShape sekil;
+ sf::Vector2f yonVeHiz;
+};
+
+struct Dusman {
+ sf::RectangleShape sekil;
 };
 
 int main()
 {
+    srand(static_cast<unsigned>(time(NULL)));
+
     sf::RenderWindow window(sf::VideoMode(1280, 720), "Top-Down Shooter");
 
-    std::vector<Mermi> mermiler;
-    sf::Clock atesZamanlayici;
-
     sf::Clock dtSaati;
+
     float oyuncuHizi = 500.f;
-
-    float mermiHizi = 800.f;
-
     sf::CircleShape oyuncu(50.f, 3);
     oyuncu.setFillColor(sf::Color::Green);
     oyuncu.setPosition(640.f, 360.f);
     sf::FloatRect bounds = oyuncu.getLocalBounds();
     oyuncu.setOrigin(bounds.left + bounds.width / 2.0f, bounds.top + bounds.height / 2.f);
+
+    float mermiHizi = 800.f;
+    std::vector<Mermi> mermiler;
+    sf::Clock atesZamanlayici;
+
+    float dusmanHizi = 250.f;
+    std::vector<Dusman> dusmanlar;
+    sf::Clock dusmanZamanlayici;
+
 
     while (window.isOpen())
     {
@@ -114,6 +126,27 @@ int main()
             atesZamanlayici.restart();
         }
 
+
+        if (dusmanZamanlayici.getElapsedTime().asSeconds() > 1.0f) {
+            Dusman yeniDusman;
+            yeniDusman.sekil.setSize(sf::Vector2f(40.f, 40.f));
+            yeniDusman.sekil.setFillColor(sf::Color::Red);
+            yeniDusman.sekil.setOrigin(20.f, 20.f);
+
+            int kenar = rand() % 4;
+            float x = 0.f, y = 0.f;
+
+            if (kenar == 0)      { x = rand() % 1280; y = -50.f; }  // Üstten
+            else if (kenar == 1) { x = rand() % 1280; y = 770.f; }  // Alttan
+            else if (kenar == 2) { x = -50.f;       y = rand() % 720; } // Soldan
+            else if (kenar == 3) { x = 1330.f;      y = rand() % 720; } // Sağdan
+
+            yeniDusman.sekil.setPosition(x, y);
+            dusmanlar.push_back(yeniDusman); // Orduya (listeye) ekle
+            dusmanZamanlayici.restart();
+        }
+
+
         for (size_t i = 0; i < mermiler.size(); i++) {
             mermiler[i].sekil.move(mermiler[i].yonVeHiz * dt);
 
@@ -128,12 +161,35 @@ int main()
             }
         }
 
+
+        for (size_t i = 0; i < dusmanlar.size(); i++) {
+
+            sf::Vector2f oyuncuPoz = oyuncu.getPosition();
+            sf::Vector2f dusmanPoz = dusmanlar[i].sekil.getPosition();
+
+            float dx = oyuncuPoz.x - dusmanPoz.x;
+            float dy = oyuncuPoz.y - dusmanPoz.y;
+
+            float uzaklik = std::sqrt(dx * dx + dy * dy);
+
+            if (uzaklik != 0) {
+                float gitX = (dx / uzaklik) * dusmanHizi * dt;
+                float gitY = (dy / uzaklik) * dusmanHizi * dt;
+                dusmanlar[i].sekil.move(gitX, gitY);
+            }
+        }
+
         window.clear();
         window.draw(oyuncu);
 
         for (size_t i = 0; i < mermiler.size(); i++) {
             window.draw(mermiler[i].sekil);
         }
+
+        for (size_t i = 0; i < dusmanlar.size(); i++) {
+            window.draw(dusmanlar[i].sekil);
+        }
+
         window.display();
     }
 
