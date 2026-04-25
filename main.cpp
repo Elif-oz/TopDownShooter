@@ -22,6 +22,11 @@ int main()
 
     sf::Clock dtSaati;
 
+    sf::Clock hasarZamanlayici;
+
+    bool dokunulmazMi = false;
+
+    int oyuncuCani = 3;
     float oyuncuHizi = 500.f;
     sf::CircleShape oyuncu(50.f, 3);
     oyuncu.setFillColor(sf::Color::Green);
@@ -178,9 +183,20 @@ int main()
                 dusmanlar[i].sekil.move(gitX, gitY);
 
                 if (dusmanlar[i].sekil.getGlobalBounds().intersects(oyuncu.getGlobalBounds())) {
-                std::cout << "YAKALANDIN! OYUN BITTI!" << std::endl;
-                window.close();//simdilik
-                }
+
+                 if (!dokunulmazMi) {
+
+                    oyuncuCani--;
+                    std::cout << "Vuruldun! Kalan Can: " << oyuncuCani << std::endl;
+                    dokunulmazMi = true;
+                    hasarZamanlayici.restart();
+
+                    if (oyuncuCani <= 0) {
+                        std::cout << "Game Over!" << std::endl;
+                        window.close();
+                    }
+                 }
+               }
             }
         }
 
@@ -200,8 +216,29 @@ int main()
             }
         }
 
+
+        float gecenHasarSuresi = hasarZamanlayici.getElapsedTime().asSeconds();
+        bool karakterGozukecekMi = true;
+
+        if (dokunulmazMi) {
+          if(gecenHasarSuresi > 2.0f)
+          {
+              dokunulmazMi = false;
+          }
+           else
+           {
+              if (((int)(gecenHasarSuresi * 10.f)) % 2 != 0) {
+                karakterGozukecekMi = false;
+            }
+           }
+
+
+        }
+
         window.clear();
-        window.draw(oyuncu);
+        if (karakterGozukecekMi) {
+            window.draw(oyuncu);
+        }
 
         for (size_t i = 0; i < mermiler.size(); i++) {
             window.draw(mermiler[i].sekil);
