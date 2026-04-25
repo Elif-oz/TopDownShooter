@@ -108,7 +108,7 @@ int main()
 
 
 
-        if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && atesZamanlayici.getElapsedTime().asSeconds() > 0.2f) {
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && atesZamanlayici.getElapsedTime().asSeconds() > 0.5f) {
 
             Mermi yeniMermi;
             yeniMermi.sekil.setRadius(5.f);
@@ -176,6 +176,27 @@ int main()
                 float gitX = (dx / uzaklik) * dusmanHizi * dt;
                 float gitY = (dy / uzaklik) * dusmanHizi * dt;
                 dusmanlar[i].sekil.move(gitX, gitY);
+
+                if (dusmanlar[i].sekil.getGlobalBounds().intersects(oyuncu.getGlobalBounds())) {
+                std::cout << "YAKALANDIN! OYUN BITTI!" << std::endl;
+                window.close();//simdilik
+                }
+            }
+        }
+
+
+        //Mermi ile dusman carpismasi
+        for (size_t i = 0; i < mermiler.size(); i++) {
+
+            for (size_t j = 0; j < dusmanlar.size(); j++) {
+
+                if (mermiler[i].sekil.getGlobalBounds().intersects(dusmanlar[j].sekil.getGlobalBounds())) {
+
+                    dusmanlar.erase(dusmanlar.begin() + j);
+                    mermiler.erase(mermiler.begin() + i);
+
+                    break;
+                }
             }
         }
 
