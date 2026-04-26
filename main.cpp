@@ -5,6 +5,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <string>
+#include <SFML/Audio.hpp>
 
 struct Mermi {
  sf::CircleShape sekil;
@@ -40,12 +41,19 @@ int main()
     canYazisi.setPosition(20.f, 20.f);
 
     int oyuncuSkoru = 0;
-     sf::Text skorYazisi;
-     skorYazisi.setFont(font1);
-     skorYazisi.setCharacterSize(30);
-     skorYazisi.setFillColor(sf::Color::Yellow);
-     skorYazisi.setStyle(sf::Text::Bold);
-     skorYazisi.setPosition(20.f, 60.f);
+    sf::Text skorYazisi;
+    skorYazisi.setFont(font1);
+    skorYazisi.setCharacterSize(30);
+    skorYazisi.setFillColor(sf::Color::Yellow);
+    skorYazisi.setStyle(sf::Text::Bold);
+    skorYazisi.setPosition(20.f, 60.f);
+
+    sf::SoundBuffer atesBuffer;
+        if (!atesBuffer.loadFromFile("Shoot.wav")) {
+            std::cout << "HATA: Shoot.wav bulunamadi!" << std::endl;
+        }
+        sf::Sound atesSesi;
+        atesSesi.setBuffer(atesBuffer);
 
     int oyuncuCani = 3;
     float oyuncuHizi = 500.f;
@@ -150,6 +158,7 @@ int main()
 
             mermiler.push_back(yeniMermi);
             atesZamanlayici.restart();
+            atesSesi.play();
         }
 
 
