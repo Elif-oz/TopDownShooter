@@ -4,6 +4,7 @@
 #include <iostream>
 #include <ctime>
 #include <cstdlib>
+#include <string>
 
 struct Mermi {
  sf::CircleShape sekil;
@@ -25,6 +26,26 @@ int main()
     sf::Clock hasarZamanlayici;
 
     bool dokunulmazMi = false;
+
+    sf::Font font1;
+        if (!font1.loadFromFile("pixel1.ttf")) {
+            std::cout << "HATA: pixel1.ttf dosyasi bulunamadi!" << std::endl;
+        }
+
+    sf::Text canYazisi;
+    canYazisi.setFont(font1);
+    canYazisi.setCharacterSize(30);
+    canYazisi.setFillColor(sf::Color::White);
+    canYazisi.setStyle(sf::Text::Bold);
+    canYazisi.setPosition(20.f, 20.f);
+
+    int oyuncuSkoru = 0;
+     sf::Text skorYazisi;
+     skorYazisi.setFont(font1);
+     skorYazisi.setCharacterSize(30);
+     skorYazisi.setFillColor(sf::Color::Yellow);
+     skorYazisi.setStyle(sf::Text::Bold);
+     skorYazisi.setPosition(20.f, 60.f);
 
     int oyuncuCani = 3;
     float oyuncuHizi = 500.f;
@@ -196,6 +217,10 @@ int main()
                         window.close();
                     }
                  }
+
+                 dusmanlar.erase(dusmanlar.begin() + i);
+                 i--;
+
                }
             }
         }
@@ -210,6 +235,8 @@ int main()
 
                     dusmanlar.erase(dusmanlar.begin() + j);
                     mermiler.erase(mermiler.begin() + i);
+                    oyuncuSkoru += 10;
+                    std::cout << "Dusman Vuruldu! Skor: " << oyuncuSkoru << std::endl;
 
                     break;
                 }
@@ -235,6 +262,10 @@ int main()
 
         }
 
+        canYazisi.setString("HP:"+ std::to_string(oyuncuCani));
+
+        skorYazisi.setString("SCORE:" + std::to_string(oyuncuSkoru));
+
         window.clear();
         if (karakterGozukecekMi) {
             window.draw(oyuncu);
@@ -247,6 +278,9 @@ int main()
         for (size_t i = 0; i < dusmanlar.size(); i++) {
             window.draw(dusmanlar[i].sekil);
         }
+
+        window.draw(canYazisi);
+        window.draw(skorYazisi);
 
         window.display();
     }
