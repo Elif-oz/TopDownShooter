@@ -107,19 +107,19 @@ int main()
         sf::Vector2f playerPos = player.getPosition();
 
         if (bounds.left < 0.f) {
-            playerPos.x -= bounds.left; // Ne kadar eksiye dustuyse, o kadar saga it
+            playerPos.x -= bounds.left;
         }
 
         if (bounds.top < 0.f) {
             playerPos.y -= bounds.top;
         }
-        // Sag Duvar (Sol kenar + Genislik = Sag kenar)
+        // Right Wall (Left edge + Width = Right edge)
         if (bounds.left + bounds.width > 1280.f) {
-            playerPos.x -= (bounds.left + bounds.width - 1280.f); // Taþtýðý miktar kadar sola it
+            playerPos.x -= (bounds.left + bounds.width - 1280.f); // Push back to the left by the amount it exceeded
         }
-        // Alt Duvar (Ust kenar + Yukseklik = Alt kenar)
+        // Bottom Wall (Top edge + Height = Bottom edge)
         if (bounds.top + bounds.height > 720.f) {
-            playerPos.y -= (bounds.top + bounds.height - 720.f); // Taþtýðý miktar kadar yukarý it
+            playerPos.y -= (bounds.top + bounds.height - 720.f); // Push back up by the amount it exceeded
         }
 
         player.setPosition(playerPos);
@@ -237,18 +237,24 @@ int main()
 
         //Mermi ile Enemy carpismasi
         for (size_t i = 0; i < bullets.size(); i++) {
+            bool bulletDestroyed = false;
 
             for (size_t j = 0; j < enemies.size(); j++) {
 
-                if (bullets[i].bulletShape.getGlobalBounds().intersects(enemies[j].enemyShape.getGlobalBounds())) {     //neden i ve j yi bir geri almadık??
+                if (bullets[i].bulletShape.getGlobalBounds().intersects(enemies[j].enemyShape.getGlobalBounds())) {
 
                     enemies.erase(enemies.begin() + j);
                     bullets.erase(bullets.begin() + i);
                     playerScore += 10;
                     std::cout << "Enemy destroyed! Score: " << playerScore << std::endl;
 
+                    bulletDestroyed = true;
+
                     break;
                 }
+            }
+            if (bulletDestroyed) {
+            i--;
             }
         }
 
