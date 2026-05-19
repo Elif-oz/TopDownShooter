@@ -1,38 +1,51 @@
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include <cmath>
 #include <vector>
 #include <iostream>
 #include <ctime>
 #include <cstdlib>
 #include <string>
-#include <SFML/Audio.hpp>
-
-struct Bullet {
- sf::CircleShape bulletShape;
- sf::Vector2f velocity;
-};
-
-struct Enemy {
- sf::RectangleShape enemyShape;
-};
+#include "Bullet.h"
+#include "Player.h"
+#include "Enemy.h"
 
 int main()
 {
     srand(static_cast<unsigned>(time(NULL)));
-
     sf::RenderWindow window(sf::VideoMode(1280, 720), "Top-Down Shooter");
-
     sf::Clock dtClock;
 
-    sf::Clock damageTimer;
-
-    bool isInvincible = false;
-
+    //Yuklemeler
     sf::Font font1;
-        if (!font1.loadFromFile("pixel1.ttf")) {
-            std::cout << "ERROR: Failed to load font 'pixel1.ttf'!" << std::endl;
-        }
+        if (!font1.loadFromFile("pixel1.ttf")) std::cout << "ERROR: pixel1.ttf\n";
 
+    sf::Texture bulletTexture;
+    if (!bulletTexture.loadFromFile("bullet.png")) std::cout << "ERROR: bullet.png\n";
+
+    sf::Texture playerTexture;
+    if (!playerTexture.loadFromFile("player.png")) std::cout << "ERROR: player.png\n";
+
+    sf::Texture weaponTexture;
+    if (!weaponTexture.loadFromFile("weapon.png")) std::cout << "ERROR: weapon.png\n";
+
+    sf::Texture enemyTexture;
+    if (!enemyTexture.loadFromFile("enemy.png")) std::cout << "ERROR: enemy.png\n";
+
+
+    sf::SoundBuffer shootBuffer;
+    if (!shootBuffer.loadFromFile("Shoot.wav")) std::cout << "ERROR: Shoot.wav\n";
+    sf::Sound shootSound;
+    shootSound.setBuffer(shootBuffer);
+
+    //Objeler
+    Player myPlayer(playerTexture, weaponTexture, sf::Vector2f(640.f, 360.f));
+
+    std::vector<Bullet> bullets;
+    std::vector<Enemy> enemies;
+    sf::Clock enemySpawnTimer;
+
+     //UI ayarlari
     sf::Text hpText;
     hpText.setFont(font1);
     hpText.setCharacterSize(30);
@@ -40,7 +53,6 @@ int main()
     hpText.setStyle(sf::Text::Bold);
     hpText.setPosition(20.f, 20.f);
 
-    int playerScore = 0;
     sf::Text scoreText;
     scoreText.setFont(font1);
     scoreText.setCharacterSize(30);
@@ -48,30 +60,7 @@ int main()
     scoreText.setStyle(sf::Text::Bold);
     scoreText.setPosition(20.f, 60.f);
 
-    sf::SoundBuffer shootBuffer;
-        if (!shootBuffer.loadFromFile("Shoot.wav")) {
-            std::cout << "ERROR: Failed to load audio 'Shoot.wav'!" << std::endl;
-        }
-        sf::Sound shootSound;
-        shootSound.setBuffer(shootBuffer);
-
-    int playerHp = 3;
-    float playerSpeed = 500.f;
-    sf::CircleShape player(50.f, 3);
-    player.setFillColor(sf::Color::Green);
-    player.setPosition(640.f, 360.f);
-    sf::FloatRect bounds = player.getLocalBounds();
-    player.setOrigin(bounds.left + bounds.width / 2.0f, bounds.top + bounds.height / 2.f);
-
-    float bulletSpeed = 800.f;
-    std::vector<Bullet> bullets;
-    sf::Clock shootTimer;
-
-    float enemySpeed = 250.f;
-    std::vector<Enemy> enemies;
-    sf::Clock enemySpawnTimer;
-
-
+    //Oyun dongusu
     while (window.isOpen())
     {
         float dt = dtClock.restart().asSeconds();
@@ -83,89 +72,12 @@ int main()
                 window.close();
         }
 
+        myPlayer.update(dt, window); // Oyuncuyu ve silahi guncelleme
 
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
-        {
-            player.move(0.f, -playerSpeed * dt);
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
-        {
-            player.move(0.f, playerSpeed * dt);
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
-        {
-            player.move(-playerSpeed * dt, 0.f);
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-        {
-            player.move(playerSpeed * dt, 0.f);
-        }
+        myPlayer.shoot(bullets, bulletTexture, window, shootSound); // Ates etme kontrolu
 
-
-
-        sf::FloatRect bounds = player.getGlobalBounds();
-        sf::Vector2f playerPos = player.getPosition();
-
-        if (bounds.left < 0.f) {
-            playerPos.x -= bounds.left;
-        }
-
-        if (bounds.top < 0.f) {
-            playerPos.y -= bounds.top;
-        }
-        // Right Wall (Left edge + Width = Right edge)
-        if (bounds.left + bounds.width > 1280.f) {
-            playerPos.x -= (bounds.left + bounds.width - 1280.f); // Push back to the left by the amount it exceeded
-        }
-        // Bottom Wall (Top edge + Height = Bottom edge)
-        if (bounds.top + bounds.height > 720.f) {
-            playerPos.y -= (bounds.top + bounds.height - 720.f); // Push back up by the amount it exceeded
-        }
-
-        player.setPosition(playerPos);
-
-
-
-        sf::Vector2i mousePosWindow = sf::Mouse::getPosition(window);
-        sf::Vector2f mousePosWorld = window.mapPixelToCoords(mousePosWindow);
-
-        //Distance between player and mouse
-        float dx = mousePosWorld.x - playerPos.x;
-        float dy = mousePosWorld.y - playerPos.y;
-
-        // Radyan cinsinden bulunup dereceye cevirme
-        float angle = std::atan2(dy, dx) * 180.f / 3.14159265f;
-
-
-        //SFML'de ucgenin ucu yukari baktigi icin +90 derece, player eklenince degisilecek!
-        player.setRotation(angle + 90.f);
-
-
-
-        if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && shootTimer.getElapsedTime().asSeconds() > 0.5f) {
-
-            Bullet newBullet;
-            newBullet.bulletShape.setRadius(5.f);
-            newBullet.bulletShape.setFillColor(sf::Color::Yellow);
-            newBullet.bulletShape.setOrigin(5.f, 5.f);
-            newBullet.bulletShape.setPosition(player.getPosition());
-
-            float distance = std::sqrt(dx * dx + dy * dy);
-            if (distance != 0) {
-                newBullet.velocity = sf::Vector2f((dx / distance) * bulletSpeed, (dy / distance) * bulletSpeed);
-            }
-
-            bullets.push_back(newBullet);
-            shootTimer.restart();
-            shootSound.play();
-        }
-
-
+        // Dusman Spawner
         if (enemySpawnTimer.getElapsedTime().asSeconds() > 1.0f) {
-            Enemy newEnemy;
-            newEnemy.enemyShape.setSize(sf::Vector2f(40.f, 40.f));
-            newEnemy.enemyShape.setFillColor(sf::Color::Red);
-            newEnemy.enemyShape.setOrigin(20.f, 20.f);
 
             int spawnEdge = rand() % 4;
             float x = 0.f, y = 0.f;
@@ -175,16 +87,19 @@ int main()
             else if (spawnEdge == 2) { x = -50.f;       y = rand() % 720; } // Soldan
             else if (spawnEdge == 3) { x = 1330.f;      y = rand() % 720; } // Sağdan
 
-            newEnemy.enemyShape.setPosition(x, y);
+            sf::Vector2f spawnPos(x, y);
+
+            Enemy newEnemy(enemyTexture, spawnPos);
+
             enemies.push_back(newEnemy); // Orduya (listeye) ekle
             enemySpawnTimer.restart();
         }
 
 
         for (size_t i = 0; i < bullets.size(); i++) {
-            bullets[i].bulletShape.move(bullets[i].velocity * dt);
+            bullets[i].update(dt);
 
-            sf::Vector2f bulletPos = bullets[i].bulletShape.getPosition();
+            sf::Vector2f bulletPos = bullets[i].getPosition();
 
             if (bulletPos.x < 0.f || bulletPos.x > 1280.f || bulletPos.y < 0.f || bulletPos.y > 720.f) {
 
@@ -195,33 +110,20 @@ int main()
             }
         }
 
-
-        sf::Vector2f targetPlayerPos = player.getPosition();
+        // Dusman hareketi ve oyuncuya carpmasi
+        sf::Vector2f targetPlayerPos = myPlayer.getPosition();
 
         for (size_t i = 0; i < enemies.size(); i++) {
 
-            sf::Vector2f currentEnemyPos = enemies[i].enemyShape.getPosition();
+            enemies[i].update(dt, targetPlayerPos);
 
-            float dx = targetPlayerPos.x - currentEnemyPos.x;
-            float dy = targetPlayerPos.y - currentEnemyPos.y;
+                if (enemies[i].getBounds().intersects(myPlayer.getBounds())) {
 
-            float distance = std::sqrt(dx * dx + dy * dy);
+                 if (!myPlayer.checkInvincible()) {
 
-            if (distance != 0) {
-                float moveX = (dx / distance) * enemySpeed * dt;
-                float moveY = (dy / distance) * enemySpeed * dt;
-                enemies[i].enemyShape.move(moveX, moveY);
+                    myPlayer.takeDamage();
 
-                if (enemies[i].enemyShape.getGlobalBounds().intersects(player.getGlobalBounds())) {
-
-                 if (!isInvincible) {
-
-                    playerHp--;
-                    std::cout << "Player hit! Remaining HP: " << playerHp << std::endl;
-                    isInvincible = true;
-                    damageTimer.restart();
-
-                    if (playerHp <= 0) {
+                    if (myPlayer.getHp() <= 0) {
                         std::cout << "Game Over!" << std::endl;
                         window.close();
                     }
@@ -232,66 +134,44 @@ int main()
 
                }
             }
-        }
 
 
-        //Mermi ile Enemy carpismasi
+
+        // Mermi-Dusman carpismasi
         for (size_t i = 0; i < bullets.size(); i++) {
             bool bulletDestroyed = false;
 
             for (size_t j = 0; j < enemies.size(); j++) {
 
-                if (bullets[i].bulletShape.getGlobalBounds().intersects(enemies[j].enemyShape.getGlobalBounds())) {
+                if (bullets[i].getBounds().intersects(enemies[j].getBounds())) {
 
                     enemies.erase(enemies.begin() + j);
                     bullets.erase(bullets.begin() + i);
-                    playerScore += 10;
-                    std::cout << "Enemy destroyed! Score: " << playerScore << std::endl;
-
+                    myPlayer.addScore(10);
+                    std::cout << "Enemy destroyed! Score: " << myPlayer.getScore() << std::endl;
                     bulletDestroyed = true;
 
                     break;
                 }
             }
-            if (bulletDestroyed) {
-            i--;
-            }
+            if (bulletDestroyed) i--;
         }
 
+        // Arayuzu guncelleme
+        hpText.setString("HP:"+ std::to_string(myPlayer.getHp()));
 
-        float timeSinceHit = damageTimer.getElapsedTime().asSeconds();
-        bool isPlayerVisible = true;
-
-        if (isInvincible) {
-          if(timeSinceHit > 2.0f)
-          {
-              isInvincible = false;
-          }
-           else
-           {
-              if (((int)(timeSinceHit * 10.f)) % 2 != 0) {
-                isPlayerVisible = false;
-            }
-           }
-
-
-        }
-
-        hpText.setString("HP:"+ std::to_string(playerHp));
-
-        scoreText.setString("SCORE:" + std::to_string(playerScore));
+        scoreText.setString("SCORE:" + std::to_string(myPlayer.getScore()));
 
         window.clear();
-        if (isPlayerVisible) {
-            window.draw(player);
-        }
+
+        myPlayer.draw(window);
 
         for (size_t i = 0; i < bullets.size(); i++) {
-            window.draw(bullets[i].bulletShape);
+            bullets[i].draw(window);
         }
 
         for (size_t i = 0; i < enemies.size(); i++) {
-            window.draw(enemies[i].enemyShape);
+            enemies[i].draw(window);
         }
 
         window.draw(hpText);
