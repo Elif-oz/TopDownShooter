@@ -35,6 +35,7 @@ class Player
     void takeDamage();
     void shoot(std::vector<Bullet>& bullets, sf::Texture& bulletTexture, sf::RenderWindow& window, sf::Sound& shootSound);
     void addScore(int points);
+    void reset(sf::Vector2f startPos);
 
     sf::FloatRect getBounds();
     sf::Vector2f getPosition();

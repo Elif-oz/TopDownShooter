@@ -147,3 +147,11 @@ int Player::getScore() {
     return score;
 }
 
+void Player::reset(sf::Vector2f startPos) {
+    hp = 3;
+    score = 0;
+    bodySprite.setPosition(startPos);
+    isInvincible = false;
+    isVisible = true;
+}
+
