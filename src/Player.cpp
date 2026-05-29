@@ -23,7 +23,13 @@ Player::Player(sf::Texture& playerTex, sf::Texture& weaponTex, sf::Vector2f star
     bodySprite.setPosition(startPos);
 
     hp = 3;
-    speed = 300.f;
+    maxHp = 3;
+    baseSpeed = 300.f;
+    speed = baseSpeed;
+    currentFireCooldown = 0.5f;
+
+    isSpeedBoosted = false;
+    isFireRateBoosted = false;
     isInvincible = false;
     isVisible = true;
 
@@ -35,6 +41,16 @@ Player::Player(sf::Texture& playerTex, sf::Texture& weaponTex, sf::Vector2f star
 void Player::update(float dt, sf::RenderWindow& window) { //Hareket ve yon
 
     prevPos = bodySprite.getPosition();
+    //Player hizi kontrolu
+    if (isSpeedBoosted && speedBoostTimer.getElapsedTime().asSeconds() > 5.0f) {
+        isSpeedBoosted = false;
+        speed = baseSpeed;
+    }
+    // Ates hizi kontrolu
+    if (isFireRateBoosted && fireRateTimer.getElapsedTime().asSeconds() > 5.0f) {
+        isFireRateBoosted = false;
+        currentFireCooldown = 0.5f;
+    }
     bool isMoving = false;
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
@@ -151,12 +167,16 @@ int Player::getHp() {
     return hp;
 }
 
+int Player::getMaxHp() {
+    return maxHp;
+}
+
 bool Player::checkInvincible() {
     return isInvincible;
 }
 
 void Player::shoot(std::vector<Bullet>& bullets, sf::Texture& bulletTexture, sf::RenderWindow& window, sf::Sound& shootSound) {
-    if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && shootTimer.getElapsedTime().asSeconds() > 0.5f) {
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && shootTimer.getElapsedTime().asSeconds() > currentFireCooldown) {
 
         sf::Vector2i mousePosWindow = sf::Mouse::getPosition(window);
         sf::Vector2f mousePosWorld = window.mapPixelToCoords(mousePosWindow);
@@ -206,14 +226,46 @@ int Player::getScore() {
 
 void Player::reset(sf::Vector2f startPos) {
     hp = 3;
+    maxHp = 3;
     score = 0;
     bodySprite.setPosition(startPos);
     isInvincible = false;
     isVisible = true;
+
+    isSpeedBoosted = false;
+    isFireRateBoosted = false;
+    speed = baseSpeed;
+    currentFireCooldown = 0.5f;
 }
 
 void Player::revertPosition() {
     bodySprite.setPosition(prevPos);
     weaponSprite.setPosition(prevPos);
+}
+
+void Player::heal(int amount) {
+
+    if (hp < maxHp){
+      hp += amount;
+    }
+     else if (maxHp < 5) {
+        maxHp += amount;
+        hp = maxHp;
+     }
+    // can sýnýrlarý
+    if (hp > maxHp) hp = maxHp;
+    if (maxHp > 5) maxHp = 5;
+}
+
+void Player::activateSpeedBoost() {
+    isSpeedBoosted = true;
+    speed = baseSpeed * 1.5f;
+    speedBoostTimer.restart();
+}
+
+void Player::activateFireRateBoost() {
+    isFireRateBoosted = true;
+    currentFireCooldown = 0.15f;
+    fireRateTimer.restart();
 }
 

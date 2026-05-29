@@ -10,6 +10,7 @@
 #include "Player.h"
 #include "Enemy.h"
 #include "WaveManager.h"
+#include "Loot.h"
 
 enum class GameState {
     MENU,
@@ -31,6 +32,11 @@ int main()
     sf::Font font2;
         if (!font2.loadFromFile("assets/fonts/pixel.ttf")) std::cout << "ERROR: pixel.ttf\n";
 
+    sf::SoundBuffer shootBuffer;
+    if (!shootBuffer.loadFromFile("assets/sounds/Shoot.wav")) std::cout << "ERROR: Shoot.wav\n";
+    sf::Sound shootSound;
+    shootSound.setBuffer(shootBuffer);
+
     sf::Texture bulletTexture;
     if (!bulletTexture.loadFromFile("assets/images/bullet.png")) std::cout << "ERROR: bullet.png\n";
     bulletTexture.setSmooth(false);
@@ -46,6 +52,34 @@ int main()
     sf::Texture enemyTexture;
     if (!enemyTexture.loadFromFile("assets/images/enemy.png")) std::cout << "ERROR: enemy.png\n";
     enemyTexture.setSmooth(false);
+
+    sf::Texture heartTexture;
+    if (!heartTexture.loadFromFile("assets/images/heart.png")) std::cout << "ERROR: heart.png\n";
+    heartTexture.setSmooth(false);
+
+    sf::Texture coinTexture;
+    if (!coinTexture.loadFromFile("assets/images/coin.png")) std::cout << "ERROR: coin.png\n";
+    coinTexture.setSmooth(false);
+
+    sf::Texture bootsTexture;
+    if (!bootsTexture.loadFromFile("assets/images/boots.png")) std::cout << "ERROR: boots.png\n";
+    bootsTexture.setSmooth(false);
+
+    sf::Texture fireTexture;
+    if (!fireTexture.loadFromFile("assets/images/fire.png")) std::cout << "ERROR: fire.png\n";
+    fireTexture.setSmooth(false);
+
+    sf::Texture bombTexture;
+    if (!bombTexture.loadFromFile("assets/images/bomb.png")) std::cout << "ERROR: bomb.png\n";
+    bombTexture.setSmooth(false);
+
+    sf::Texture hpUI_Texture;
+    if (!hpUI_Texture.loadFromFile("assets/images/hp_bar.png")) std::cout << "ERROR: hp_bar.png\n";
+    hpUI_Texture.setSmooth(false);
+
+    sf::Sprite hpUISprite(hpUI_Texture); //HP gorseli icin
+    hpUISprite.setPosition(20.f, 20.f);
+    hpUISprite.setScale(2.f, 2.f);
 
     sf::Texture tileTextures[11];
     std::string fileNames[11] = {
@@ -84,19 +118,20 @@ int main()
         {5, 4, 5, 4, 5, 4, 5, 4, 5, 4, 5, 4, 5, 4, 5, 4, 5, 4, 5, 4}
     };
 
-
-    sf::SoundBuffer shootBuffer;
-    if (!shootBuffer.loadFromFile("assets/sounds/Shoot.wav")) std::cout << "ERROR: Shoot.wav\n";
-    sf::Sound shootSound;
-    shootSound.setBuffer(shootBuffer);
-
     //Objeler
     Player myPlayer(playerTexture, weaponTexture, sf::Vector2f(640.f, 384.f));
 
     std::vector<Bullet> bullets;
     std::vector<Enemy> enemies;
+    std::vector<Loot> loots;
 
      //UI ayarlari
+
+    int previousHp = myPlayer.getHp(); //HP animasyonu icin
+    bool isHpAnimating = false;
+    sf::Clock hpAnimTimer;
+    int hpAnimFrame = 0;
+
     sf::Text hpText;
     hpText.setFont(font1);
     hpText.setCharacterSize(30);
@@ -109,7 +144,7 @@ int main()
     scoreText.setCharacterSize(30);
     scoreText.setFillColor(sf::Color::Yellow);
     scoreText.setStyle(sf::Text::Bold);
-    scoreText.setPosition(20.f, 60.f);
+    scoreText.setPosition(20.f, 100.f);
 
     // Menu basliği
     sf::Text titleText;
@@ -161,14 +196,13 @@ int main()
     restartText.setOrigin(rTextBounds.left + rTextBounds.width / 2.0f, rTextBounds.top + rTextBounds.height / 2.0f);
     restartText.setPosition(1280.f / 2.0f, 450.f);
 
-    //Wave yazilari
-    WaveManager waveManager;
+    WaveManager waveManager;   //Wave yazilari
     sf::Text waveUI;
     waveUI.setFont(font1);
     waveUI.setCharacterSize(30);
     waveUI.setFillColor(sf::Color::Cyan);
     waveUI.setStyle(sf::Text::Bold);
-    waveUI.setPosition(20.f, 100.f);
+    waveUI.setPosition(20.f, 140.f);
 
     sf::Text waveCenterText;
     waveCenterText.setFont(font1);
@@ -201,7 +235,7 @@ int main()
             // Basla butonunun üzerine gelince
             if (startBtn.getGlobalBounds().contains(mousePosWorld)) {
                 startBtn.setFillColor(sf::Color::Cyan);
-                // Tıklanırsa oyuna geç
+
                 if (isMouseClicked && !mouseWasPressed) {
                     currentState = GameState::PLAYING;
                 }
@@ -310,6 +344,23 @@ int main()
 
                 if (bullets[i].getBounds().intersects(enemies[j].getBounds())) {
 
+                    int dropChance = rand() % 100;
+                    if (dropChance < 10) {                          //%10 can
+                        loots.push_back(Loot(heartTexture, enemies[j].getPosition(), LootType::HEALTH));
+                    }
+                    else if (dropChance >= 10 && dropChance < 30) { //%30 skor
+                        loots.push_back(Loot(coinTexture, enemies[j].getPosition(), LootType::SCORE));
+                    }
+                    else if (dropChance >= 30 && dropChance < 35) { //%5 hiz
+                        loots.push_back(Loot(bootsTexture, enemies[j].getPosition(), LootType::SPEED_BOOST));
+                    }
+                    else if (dropChance >= 35 && dropChance < 40) {//%5 ates hizi
+                        loots.push_back(Loot(fireTexture, enemies[j].getPosition(), LootType::FIRE_RATE));
+                    }
+                    else if (dropChance >= 40 && dropChance < 42) {//%2 bomba
+                        loots.push_back(Loot(bombTexture, enemies[j].getPosition(), LootType::BOMB));
+                    }
+
                     enemies.erase(enemies.begin() + j);
                     bullets.erase(bullets.begin() + i);
                     myPlayer.addScore(10);
@@ -322,6 +373,54 @@ int main()
             if (bulletDestroyed) i--;
         }
 
+        // Oyuncu-Loot carpismasi
+        for (size_t i = 0; i < loots.size(); i++) {
+            if (myPlayer.getBounds().intersects(loots[i].getBounds())) {
+
+                if (loots[i].getType() == LootType::HEALTH) {
+                    myPlayer.heal(1);
+                }
+                else if (loots[i].getType() == LootType::SCORE) {
+                    myPlayer.addScore(50);
+                }
+                else if (loots[i].getType() == LootType::SPEED_BOOST) {
+                    myPlayer.activateSpeedBoost();
+                }
+                else if (loots[i].getType() == LootType::FIRE_RATE) {
+                    myPlayer.activateFireRateBoost();
+                }
+                else if (loots[i].getType() == LootType::BOMB) {
+                    myPlayer.addScore(enemies.size() * 10);
+                    enemies.clear();
+                }
+
+                loots.erase(loots.begin() + i);
+                i--;
+            }
+        }
+
+        //HP kontrolu ve animasyonu
+        int currentHP = myPlayer.getHp();
+        int maxHP = myPlayer.getMaxHp();
+
+        if (currentHP < previousHp) {
+            isHpAnimating = true;
+            hpAnimTimer.restart();
+            hpAnimFrame = 1;
+        }
+        previousHp = currentHP;
+
+        if (isHpAnimating) {
+            if (hpAnimTimer.getElapsedTime().asSeconds() > 0.15f) {
+                hpAnimFrame++;
+                hpAnimTimer.restart();
+                if (hpAnimFrame >= 3) {
+                    hpAnimFrame = 3;
+                    isHpAnimating = false;
+                }
+            }
+        }
+
         // Arayuzu guncelleme
         hpText.setString("HP:"+ std::to_string(myPlayer.getHp()));
         scoreText.setString("SCORE:" + std::to_string(myPlayer.getScore()));
@@ -332,12 +431,14 @@ int main()
             // Tekrar oyna butonunun uzerine gelince
             if (restartBtn.getGlobalBounds().contains(mousePosWorld)) {
                 restartBtn.setFillColor(sf::Color::Cyan);
-                // Tıklanırsa oyunu sıfırlama ve baslatma
+
                 if (isMouseClicked && !mouseWasPressed) {
                     bullets.clear();
                     enemies.clear();
+                    loots.clear();
                     myPlayer.reset(sf::Vector2f(640.f, 384.f));
                     waveManager.reset();
+                    previousHp = myPlayer.getHp();
                     currentState = GameState::PLAYING;
                 }
             } else {
@@ -359,14 +460,14 @@ int main()
                 window.draw(startText);
                 break;
 
-            case GameState::PLAYING:
+            case GameState::PLAYING: {
 
                 for (int i = 0; i < MAP_ROWS; i++) {
                     for (int j = 0; j < MAP_COLS; j++) {
                         int tileID = tileMap[i][j];
 
                         if (tileID >= 4) {
-                            tileSprite.setTexture(tileTextures[0]); // Altına 0 numaralı kumu çiz
+                            tileSprite.setTexture(tileTextures[0]);
                             tileSprite.setPosition(j * 64.f, i * 64.f);
                             window.draw(tileSprite);
                         }
@@ -381,14 +482,42 @@ int main()
 
                 for (size_t i = 0; i < bullets.size(); i++) bullets[i].draw(window);
                 for (size_t i = 0; i < enemies.size(); i++) enemies[i].draw(window);
+                for (size_t i = 0; i < loots.size(); i++) loots[i].draw(window);
 
-                window.draw(hpText);
+                int currentHP = myPlayer.getHp();
+                int maxHP = myPlayer.getMaxHp();
+
+                int frameWidth = 32;
+                int frameHeight = 32;
+                float spacing = 10.f;
+
+                for (int i = 0; i < maxHP; i++) {
+
+                 float xPos = 20.f + (i * ((frameWidth * 2.f) + spacing));
+                 hpUISprite.setPosition(xPos, 20.f);
+
+                 int currentFrameToDraw = 0;
+                 if (i < currentHP) {
+                   currentFrameToDraw = 0;
+                 }
+                   else if (i == currentHP && isHpAnimating) {
+                     currentFrameToDraw = hpAnimFrame;
+                   }
+                     else {
+                      currentFrameToDraw = 3;
+                     }
+
+                 hpUISprite.setTextureRect(sf::IntRect(currentFrameToDraw * frameWidth, 0, frameWidth, frameHeight));
+                 window.draw(hpUISprite);
+                }
+
                 window.draw(scoreText);
                 window.draw(waveUI);
                 if (waveManager.isInBreak()) {
                     window.draw(waveCenterText);
                 }
                 break;
+            }
 
             case GameState::GAMEOVER:
                 window.draw(gameOverText);

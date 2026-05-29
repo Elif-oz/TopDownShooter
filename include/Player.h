@@ -15,15 +15,23 @@ class Player
     sf::Sprite weaponSprite;
 
     int hp;
+    int maxHp;
     float speed;
     int score;
+
+    float baseSpeed;
+    float currentFireCooldown;
 
     bool isInvincible;
     sf::Clock damageTimer;
     bool isVisible;
+    bool isSpeedBoosted;
+    bool isFireRateBoosted;
 
     float bulletSpeed;
     sf::Clock shootTimer;
+    sf::Clock speedBoostTimer;
+    sf::Clock fireRateTimer;
 
     sf::Vector2f prevPos;
 
@@ -45,10 +53,16 @@ class Player
     sf::FloatRect getBounds();
     sf::Vector2f getPosition();
     int getHp();
-    bool checkInvincible();
+    int getMaxHp();
     int getScore();
+    bool checkInvincible();
 
     void revertPosition();
+
+    void heal(int amount);
+
+    void activateSpeedBoost();
+    void activateFireRateBoost();
 };
 
 #endif // PLAYER_H
