@@ -19,37 +19,78 @@ enum class GameState {
 int main()
 {
     srand(static_cast<unsigned>(time(NULL)));
-    sf::RenderWindow window(sf::VideoMode(1280, 720), "Top-Down Shooter");
+    sf::RenderWindow window(sf::VideoMode(1280, 768), "Top-Down Shooter");
     window.setFramerateLimit(60);
     sf::Clock dtClock;
 
     //Yuklemeler
     sf::Font font1;
-        if (!font1.loadFromFile("pixel1.ttf")) std::cout << "ERROR: pixel1.ttf\n";
+        if (!font1.loadFromFile("assets/fonts/pixel1.ttf")) std::cout << "ERROR: pixel1.ttf\n";
 
     sf::Font font2;
-        if (!font2.loadFromFile("pixel.ttf")) std::cout << "ERROR: pixel.ttf\n";
+        if (!font2.loadFromFile("assets/fonts/pixel.ttf")) std::cout << "ERROR: pixel.ttf\n";
 
     sf::Texture bulletTexture;
-    if (!bulletTexture.loadFromFile("bullet.png")) std::cout << "ERROR: bullet.png\n";
+    if (!bulletTexture.loadFromFile("assets/images/bullet.png")) std::cout << "ERROR: bullet.png\n";
+    bulletTexture.setSmooth(false);
 
     sf::Texture playerTexture;
-    if (!playerTexture.loadFromFile("player.png")) std::cout << "ERROR: player.png\n";
+    if (!playerTexture.loadFromFile("assets/images/player.png")) std::cout << "ERROR: player.png\n";
+    playerTexture.setSmooth(false);
 
     sf::Texture weaponTexture;
-    if (!weaponTexture.loadFromFile("weapon.png")) std::cout << "ERROR: weapon.png\n";
+    if (!weaponTexture.loadFromFile("assets/images/weapon.png")) std::cout << "ERROR: weapon.png\n";
+    weaponTexture.setSmooth(false);
 
     sf::Texture enemyTexture;
-    if (!enemyTexture.loadFromFile("enemy.png")) std::cout << "ERROR: enemy.png\n";
+    if (!enemyTexture.loadFromFile("assets/images/enemy.png")) std::cout << "ERROR: enemy.png\n";
+    enemyTexture.setSmooth(false);
+
+    sf::Texture tileTextures[11];
+    std::string fileNames[11] = {
+        "assets/images/tiles/PNG0000.PNG", "assets/images/tiles/PNG0001.PNG",
+        "assets/images/tiles/PNG0002.PNG", "assets/images/tiles/PNG0003.PNG",
+        "assets/images/tiles/PNG0004.PNG", "assets/images/tiles/PNG0005.PNG",
+        "assets/images/tiles/PNG0006.PNG", "assets/images/tiles/PNG0007.PNG",
+        "assets/images/tiles/PNG0008.PNG", "assets/images/tiles/PNG0009.PNG",
+        "assets/images/tiles/PNG0010.PNG"
+    };
+
+    for(int i = 0; i < 11; i++) {
+        if (!tileTextures[i].loadFromFile(fileNames[i])) std::cout << "ERROR: " << fileNames[i] << "\n";
+        tileTextures[i].setSmooth(false);
+    }
+
+    sf::Sprite tileSprite;
+    tileSprite.setScale(2.f, 2.f);
+
+    const int MAP_ROWS = 12;
+    const int MAP_COLS = 20;
+
+    // 0,1,2,3: Kum | 4,5: Kaktus | 6,7: Ot | 8,9: Tas | 10: Iskelet
+    int tileMap[MAP_ROWS][MAP_COLS] = {
+        {4, 5, 4, 5, 4, 5, 4, 5, 4, 5, 4, 5, 4, 5, 4, 5, 4, 5, 4, 5},
+        {5, 0, 1, 1, 0, 0, 0, 7, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 4},
+        {4, 0, 1, 1, 0, 6, 0, 0, 0, 2, 0, 1, 1, 0, 0, 8, 0, 0, 0, 5},
+        {5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 4},
+        {4, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5},
+        {5, 0, 0, 8, 0, 0, 0, 1, 1, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 4},
+        {4, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 5},
+        {5, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 4},
+        {4, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 2, 0, 5},
+        {5, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4},
+        {4, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 5},
+        {5, 4, 5, 4, 5, 4, 5, 4, 5, 4, 5, 4, 5, 4, 5, 4, 5, 4, 5, 4}
+    };
 
 
     sf::SoundBuffer shootBuffer;
-    if (!shootBuffer.loadFromFile("Shoot.wav")) std::cout << "ERROR: Shoot.wav\n";
+    if (!shootBuffer.loadFromFile("assets/sounds/Shoot.wav")) std::cout << "ERROR: Shoot.wav\n";
     sf::Sound shootSound;
     shootSound.setBuffer(shootBuffer);
 
     //Objeler
-    Player myPlayer(playerTexture, weaponTexture, sf::Vector2f(640.f, 360.f));
+    Player myPlayer(playerTexture, weaponTexture, sf::Vector2f(640.f, 384.f));
 
     std::vector<Bullet> bullets;
     std::vector<Enemy> enemies;
@@ -158,6 +199,41 @@ int main()
       case GameState::PLAYING: {
 
         myPlayer.update(dt, window); // Oyuncuyu ve silahi guncelleme
+
+        sf::FloatRect pBounds = myPlayer.getBounds();
+
+        float shrinkX = 10.f; //Hitbox daraltma
+        pBounds.left += shrinkX;
+        pBounds.width -= (shrinkX * 2);
+
+        pBounds.top += 30.f;
+        pBounds.height -= 30.f;
+
+        bool hitWall = false;
+
+        // Haritadaki tüm kareleri tarama
+        for (int i = 0; i < MAP_ROWS; i++) {
+            for (int j = 0; j < MAP_COLS; j++) {
+                int tileID = tileMap[i][j];
+
+                // 4-5 : Kaktus
+                if (tileID == 4 || tileID == 5 ) {
+
+                    sf::FloatRect tileBounds(j * 64.f, i * 64.f, 64.f, 64.f);
+
+                    if (pBounds.intersects(tileBounds)) {
+                        hitWall = true;
+                        break;
+                    }
+                }
+            }
+            if (hitWall) break;
+        }
+
+        if (hitWall) {
+            myPlayer.revertPosition();
+        }
+
         myPlayer.shoot(bullets, bulletTexture, window, shootSound); // Ates etme kontrolu
 
         // Dusman Spawner
@@ -166,10 +242,10 @@ int main()
             int spawnEdge = rand() % 4;
             float x = 0.f, y = 0.f;
 
-            if (spawnEdge == 0)      { x = rand() % 1280; y = -50.f; }  // Üstten
-            else if (spawnEdge == 1) { x = rand() % 1280; y = 770.f; }  // Alttan
-            else if (spawnEdge == 2) { x = -50.f;       y = rand() % 720; } // Soldan
-            else if (spawnEdge == 3) { x = 1330.f;      y = rand() % 720; } // Sağdan
+            if (spawnEdge == 0)      { x = rand() % 1280; y = -100.f; }  // Üstten
+            else if (spawnEdge == 1) { x = rand() % 1280; y = 868.f; }  // Alttan
+            else if (spawnEdge == 2) { x = -100.f;   y = rand() % 768; } // Soldan
+            else if (spawnEdge == 3) { x = 1380.f;  y = rand() % 768; } // Sağdan
 
             sf::Vector2f spawnPos(x, y);
 
@@ -209,7 +285,7 @@ int main()
 
                     if (myPlayer.getHp() <= 0) {
                         std::cout << "Game Over!" << std::endl;
-                        window.close();
+                        currentState = GameState::GAMEOVER;
                     }
                  }
 
@@ -278,6 +354,23 @@ int main()
                 break;
 
             case GameState::PLAYING:
+
+                for (int i = 0; i < MAP_ROWS; i++) {
+                    for (int j = 0; j < MAP_COLS; j++) {
+                        int tileID = tileMap[i][j];
+
+                        if (tileID >= 4) {
+                            tileSprite.setTexture(tileTextures[0]); // Altına 0 numaralı kumu çiz
+                            tileSprite.setPosition(j * 64.f, i * 64.f);
+                            window.draw(tileSprite);
+                        }
+
+                        tileSprite.setTexture(tileTextures[tileID]);
+                        tileSprite.setPosition(j * 64.f, i * 64.f);
+                        window.draw(tileSprite);
+                    }
+                }
+
                 myPlayer.draw(window);
 
                 for (size_t i = 0; i < bullets.size(); i++) bullets[i].draw(window);

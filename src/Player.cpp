@@ -4,10 +4,17 @@
 Player::Player(sf::Texture& playerTex, sf::Texture& weaponTex, sf::Vector2f startPos)
 {
     bodySprite.setTexture(playerTex);
+
+    currentFrame = 0;
+    bodySprite.setTextureRect(sf::IntRect(0, 0, 32, 32));
+
     weaponSprite.setTexture(weaponTex);
 
+    bodySprite.setScale(2.f, 2.f);
+    weaponSprite.setScale(2.f, 2.f);
+
     sf::FloatRect pBounds = bodySprite.getLocalBounds();
-    bodySprite.setOrigin(pBounds.width / 2.f, pBounds.height / 2.f);
+    bodySprite.setOrigin(16.f, 16.f);
 
     sf::FloatRect wBounds = weaponSprite.getLocalBounds();
     // Silahin origin'i sol orta kisma alindi ki oradan donsun
@@ -16,7 +23,7 @@ Player::Player(sf::Texture& playerTex, sf::Texture& weaponTex, sf::Vector2f star
     bodySprite.setPosition(startPos);
 
     hp = 3;
-    speed = 500.f;
+    speed = 300.f;
     isInvincible = false;
     isVisible = true;
 
@@ -27,19 +34,42 @@ Player::Player(sf::Texture& playerTex, sf::Texture& weaponTex, sf::Vector2f star
 
 void Player::update(float dt, sf::RenderWindow& window) { //Hareket ve yon
 
+    prevPos = bodySprite.getPosition();
+    bool isMoving = false;
+
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
         bodySprite.move(0.f, -speed * dt);
+        isMoving = true;
     }
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
         bodySprite.move(0.f, speed * dt);
+        isMoving = true;
     }
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
         bodySprite.move(-speed * dt, 0.f);
-        bodySprite.setScale(-1.f, 1.f); // Sprite'in sola bakmasi icin
+        bodySprite.setScale(-2.f, 2.f);  // Sprite'in sola bakmasi icin
+        isMoving = true;
     }
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
         bodySprite.move(speed * dt, 0.f);
-        bodySprite.setScale(1.f, 1.f);  // Sprite'in saga bakmasi icin
+        isMoving = true;
+        bodySprite.setScale(2.f, 2.f);  // Sprite'in saga bakmasi icin
+    }
+
+    if (isMoving) {
+        if (animTimer.getElapsedTime().asSeconds() > 0.15f) {
+            currentFrame++;
+
+            if (currentFrame >= 4) {
+                currentFrame = 0;
+            }
+
+            bodySprite.setTextureRect(sf::IntRect(currentFrame * 32, 0, 32, 32));
+            animTimer.restart();
+        }
+    } else {
+        currentFrame = 0;
+        bodySprite.setTextureRect(sf::IntRect(0, 0, 32, 32));
     }
 
 
@@ -49,27 +79,35 @@ void Player::update(float dt, sf::RenderWindow& window) { //Hareket ve yon
     if (bounds.left < 0.f) pos.x -= bounds.left;
     if (bounds.top < 0.f) pos.y -= bounds.top;
     if (bounds.left + bounds.width > 1280.f) pos.x -= (bounds.left + bounds.width - 1280.f);
-    if (bounds.top + bounds.height > 720.f) pos.y -= (bounds.top + bounds.height - 720.f);
+    if (bounds.top + bounds.height > 768.f) pos.y -= (bounds.top + bounds.height - 768.f);
 
     bodySprite.setPosition(pos);
 
 
     weaponSprite.setPosition(bodySprite.getPosition()); // Silah pozisyonu ve fareye donmesi
 
+    sf::Vector2f playerCenter = bodySprite.getPosition();
     sf::Vector2i mousePosWindow = sf::Mouse::getPosition(window);
     sf::Vector2f mousePosWorld = window.mapPixelToCoords(mousePosWindow);
 
-    float dx = mousePosWorld.x - weaponSprite.getPosition().x;
-    float dy = mousePosWorld.y - weaponSprite.getPosition().y;
+    float dx = mousePosWorld.x - playerCenter.x;
+    float dy = mousePosWorld.y - playerCenter.y;
 
-    float angle = std::atan2(dy, dx) * 180.f / 3.14159265f;
-    weaponSprite.setRotation(angle);
+    float angleRad = std::atan2(dy, dx);
+    float angleDeg = angleRad * 180.f / 3.14159265f;
 
-    // Silah sola bakarken ters dönmesini engellemek icin
-    if (angle > 90.f || angle < -90.f) {
-        weaponSprite.setScale(1.f, -1.f);
+    float orbitRadius = 35.f; // Silahin karaktere uzakligi
+    float weaponX = playerCenter.x + (std::cos(angleRad) * orbitRadius);
+    float weaponY = playerCenter.y + (std::sin(angleRad) * orbitRadius);
+
+    weaponSprite.setPosition(weaponX, weaponY);
+    weaponSprite.setRotation(angleDeg);
+
+    // Silah sola bakarken ters donmesini engellemek icin
+    if (angleDeg > 90.f || angleDeg < -90.f) {
+        weaponSprite.setScale(2.f, -2.f);
     } else {
-        weaponSprite.setScale(1.f, 1.f);
+        weaponSprite.setScale(2.f, 2.f);
     }
 
 
@@ -129,8 +167,27 @@ void Player::shoot(std::vector<Bullet>& bullets, sf::Texture& bulletTexture, sf:
         float distance = std::sqrt(dx * dx + dy * dy);
 
         if (distance > 0.1f) {
-            sf::Vector2f vel((dx / distance) * bulletSpeed, (dy / distance) * bulletSpeed);
-            Bullet newBullet(wPos, vel, bulletTexture);
+            float dirX = dx / distance;
+            float dirY = dy / distance;
+            float perpX = -dirY;
+            float perpY = dirX;
+
+            float barrelLength = 20.f; // Silahin uzunlugu
+            float barrelOffset = 3.f;
+
+            float angleDeg = std::atan2(dy, dx) * 180.f / 3.14159265f;
+            if (angleDeg > 90.f || angleDeg < -90.f) {
+                barrelOffset = -barrelOffset;
+            }
+
+            sf::Vector2f spawnPos(
+              wPos.x + (dirX * barrelLength)+ (perpX * barrelOffset),
+              wPos.y + (dirY * barrelLength)+ (perpY * barrelOffset)
+            );
+
+            sf::Vector2f vel(dirX * bulletSpeed, dirY * bulletSpeed);
+
+            Bullet newBullet(spawnPos, vel, bulletTexture);
             bullets.push_back(newBullet);
         }
 
@@ -153,5 +210,10 @@ void Player::reset(sf::Vector2f startPos) {
     bodySprite.setPosition(startPos);
     isInvincible = false;
     isVisible = true;
+}
+
+void Player::revertPosition() {
+    bodySprite.setPosition(prevPos);
+    weaponSprite.setPosition(prevPos);
 }
 

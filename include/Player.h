@@ -25,6 +25,11 @@ class Player
     float bulletSpeed;
     sf::Clock shootTimer;
 
+    sf::Vector2f prevPos;
+
+    sf::Clock animTimer;
+    int currentFrame;
+
 
   public:
     Player(sf::Texture& playerTex, sf::Texture& weaponTex, sf::Vector2f startPos);
@@ -42,6 +47,8 @@ class Player
     int getHp();
     bool checkInvincible();
     int getScore();
+
+    void revertPosition();
 };
 
 #endif // PLAYER_H

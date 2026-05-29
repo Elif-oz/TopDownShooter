@@ -10,6 +10,9 @@ class Enemy
     sf::Sprite sprite;
     float speed;
 
+    sf::Clock animTimer;
+    int currentFrame;
+
   public:
     Enemy(sf::Texture& texture, sf::Vector2f startPos);
 

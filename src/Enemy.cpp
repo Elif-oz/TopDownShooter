@@ -4,12 +4,16 @@
 Enemy::Enemy(sf::Texture& texture, sf::Vector2f startPos)
 {
     sprite.setTexture(texture);
+    currentFrame = 0;
+    sprite.setTextureRect(sf::IntRect(0, 0, 32, 32));
 
-    sf::FloatRect bounds = sprite.getLocalBounds();
-    sprite.setOrigin(bounds.width / 2.f, bounds.height / 2.f);
+    sprite.setScale(2.f, 2.f);
+
+    sprite.setOrigin(16.f, 16.f);
 
     sprite.setPosition(startPos);
-    speed = 250.f;
+    speed = 200.f;
+
 }
 
 void Enemy::update(float dt, sf::Vector2f targetPos) {
@@ -24,7 +28,26 @@ void Enemy::update(float dt, sf::Vector2f targetPos) {
         float moveX = (dx / distance) * speed * dt;
         float moveY = (dy / distance) * speed * dt;
         sprite.move(moveX, moveY);
+
+        if (moveX < 0) {
+            sprite.setScale(-2.f, 2.f);
+        } else {
+            sprite.setScale(2.f, 2.f);
+        }
+
+        if (animTimer.getElapsedTime().asSeconds() > 0.15f) {
+            currentFrame++;
+
+            if (currentFrame >= 5) {
+                currentFrame = 0;
+            }
+
+            sprite.setTextureRect(sf::IntRect(currentFrame * 32, 0, 32, 32));
+            animTimer.restart();
+        }
     }
+
+
 }
 
 void Enemy::draw(sf::RenderWindow& window) {
