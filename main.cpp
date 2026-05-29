@@ -9,6 +9,7 @@
 #include "Bullet.h"
 #include "Player.h"
 #include "Enemy.h"
+#include "WaveManager.h"
 
 enum class GameState {
     MENU,
@@ -94,7 +95,6 @@ int main()
 
     std::vector<Bullet> bullets;
     std::vector<Enemy> enemies;
-    sf::Clock enemySpawnTimer;
 
      //UI ayarlari
     sf::Text hpText;
@@ -161,9 +161,23 @@ int main()
     restartText.setOrigin(rTextBounds.left + rTextBounds.width / 2.0f, rTextBounds.top + rTextBounds.height / 2.0f);
     restartText.setPosition(1280.f / 2.0f, 450.f);
 
+    //Wave yazilari
+    WaveManager waveManager;
+    sf::Text waveUI;
+    waveUI.setFont(font1);
+    waveUI.setCharacterSize(30);
+    waveUI.setFillColor(sf::Color::Cyan);
+    waveUI.setStyle(sf::Text::Bold);
+    waveUI.setPosition(20.f, 100.f);
+
+    sf::Text waveCenterText;
+    waveCenterText.setFont(font1);
+    waveCenterText.setCharacterSize(50);
+    waveCenterText.setFillColor(sf::Color::White);
+
     // Oyunun baslangic durumu
     GameState currentState = GameState::MENU;
-    bool mouseWasPressed = false; // Tıklama bug'larını önlemek için
+    bool mouseWasPressed = false;
 
     //Oyun dongusu
     while (window.isOpen())
@@ -199,6 +213,16 @@ int main()
       case GameState::PLAYING: {
 
         myPlayer.update(dt, window); // Oyuncuyu ve silahi guncelleme
+        waveManager.update(enemies, enemyTexture);
+
+        waveUI.setString("WAVE: " + std::to_string(waveManager.getCurrentWave()));
+
+        if (waveManager.isInBreak()) {
+            waveCenterText.setString(waveManager.getBreakText());
+            sf::FloatRect bounds = waveCenterText.getLocalBounds();
+            waveCenterText.setOrigin(bounds.width / 2.f, bounds.height / 2.f);
+            waveCenterText.setPosition(1280.f / 2.f, 768.f / 2.f);
+        }
 
         sf::FloatRect pBounds = myPlayer.getBounds();
 
@@ -236,32 +260,13 @@ int main()
 
         myPlayer.shoot(bullets, bulletTexture, window, shootSound); // Ates etme kontrolu
 
-        // Dusman Spawner
-        if (enemySpawnTimer.getElapsedTime().asSeconds() > 1.0f) {
-
-            int spawnEdge = rand() % 4;
-            float x = 0.f, y = 0.f;
-
-            if (spawnEdge == 0)      { x = rand() % 1280; y = -100.f; }  // Üstten
-            else if (spawnEdge == 1) { x = rand() % 1280; y = 868.f; }  // Alttan
-            else if (spawnEdge == 2) { x = -100.f;   y = rand() % 768; } // Soldan
-            else if (spawnEdge == 3) { x = 1380.f;  y = rand() % 768; } // Sağdan
-
-            sf::Vector2f spawnPos(x, y);
-
-            Enemy newEnemy(enemyTexture, spawnPos);
-
-            enemies.push_back(newEnemy); // Orduya (listeye) ekle
-            enemySpawnTimer.restart();
-        }
-
         //Mermi guncelleme
         for (size_t i = 0; i < bullets.size(); i++) {
             bullets[i].update(dt);
 
             sf::Vector2f bulletPos = bullets[i].getPosition();
 
-            if (bulletPos.x < 0.f || bulletPos.x > 1280.f || bulletPos.y < 0.f || bulletPos.y > 720.f) {
+            if (bulletPos.x < 0.f || bulletPos.x > 1280.f || bulletPos.y < 0.f || bulletPos.y > 768.f) {
 
                 bullets.erase(bullets.begin() + i);
 
@@ -331,7 +336,8 @@ int main()
                 if (isMouseClicked && !mouseWasPressed) {
                     bullets.clear();
                     enemies.clear();
-                    myPlayer.reset(sf::Vector2f(640.f, 360.f));
+                    myPlayer.reset(sf::Vector2f(640.f, 384.f));
+                    waveManager.reset();
                     currentState = GameState::PLAYING;
                 }
             } else {
@@ -378,6 +384,10 @@ int main()
 
                 window.draw(hpText);
                 window.draw(scoreText);
+                window.draw(waveUI);
+                if (waveManager.isInBreak()) {
+                    window.draw(waveCenterText);
+                }
                 break;
 
             case GameState::GAMEOVER:

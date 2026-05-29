@@ -45,10 +45,12 @@
 		<Unit filename="include/Bullet.h" />
 		<Unit filename="include/Enemy.h" />
 		<Unit filename="include/Player.h" />
+		<Unit filename="include/WaveManager.h" />
 		<Unit filename="main.cpp" />
 		<Unit filename="src/Bullet.cpp" />
 		<Unit filename="src/Enemy.cpp" />
 		<Unit filename="src/Player.cpp" />
+		<Unit filename="src/WaveManager.cpp" />
 		<Extensions>
 			<lib_finder disable_auto="1" />
 		</Extensions>

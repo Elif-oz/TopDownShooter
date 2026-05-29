@@ -16,7 +16,6 @@ class Enemy
   public:
     Enemy(sf::Texture& texture, sf::Vector2f startPos);
 
-    // Dusman hareketinin hesaplanmasi icin oyuncunun anlýk pozisyonunu alma
     void update(float dt, sf::Vector2f targetPos);
 
     void draw(sf::RenderWindow& window);
