@@ -16,9 +16,16 @@ class Loot {
     sf::Sprite sprite;
     LootType type;
 
-  public:
-    Loot(sf::Texture& texture, sf::Vector2f pos, LootType lType);
+    int currentFrame; //loot animasyonlarý icin
+    int maxFrames;
+    float animTimer;
+    int frameWidth;
+    int frameHeight;
 
+  public:
+    Loot(sf::Texture& texture, sf::Vector2f pos, LootType lType, int frames = 1);
+
+    void update(float dt);
     void draw(sf::RenderWindow& window);
     sf::FloatRect getBounds();
     LootType getType();

@@ -62,7 +62,7 @@ int main()
     coinTexture.setSmooth(false);
 
     sf::Texture bootsTexture;
-    if (!bootsTexture.loadFromFile("assets/images/boots.png")) std::cout << "ERROR: boots.png\n";
+    if (!bootsTexture.loadFromFile("assets/images/speed.png")) std::cout << "ERROR: speed.png\n";
     bootsTexture.setSmooth(false);
 
     sf::Texture fireTexture;
@@ -309,6 +309,11 @@ int main()
             }
         }
 
+        // Loot guncelleme
+        for (size_t i = 0; i < loots.size(); i++) {
+            loots[i].update(dt);
+        }
+
         // Dusman hareketi ve oyuncuya carpmasi
         sf::Vector2f targetPlayerPos = myPlayer.getPosition();
 
@@ -346,19 +351,19 @@ int main()
 
                     int dropChance = rand() % 100;
                     if (dropChance < 10) {                          //%10 can
-                        loots.push_back(Loot(heartTexture, enemies[j].getPosition(), LootType::HEALTH));
+                        loots.push_back(Loot(heartTexture, enemies[j].getPosition(), LootType::HEALTH, 9));
                     }
-                    else if (dropChance >= 10 && dropChance < 30) { //%30 skor
-                        loots.push_back(Loot(coinTexture, enemies[j].getPosition(), LootType::SCORE));
+                    else if (dropChance >= 10 && dropChance < 30) { //%20 skor
+                        loots.push_back(Loot(coinTexture, enemies[j].getPosition(), LootType::SCORE, 8));
                     }
                     else if (dropChance >= 30 && dropChance < 35) { //%5 hiz
-                        loots.push_back(Loot(bootsTexture, enemies[j].getPosition(), LootType::SPEED_BOOST));
+                        loots.push_back(Loot(bootsTexture, enemies[j].getPosition(), LootType::SPEED_BOOST, 8));
                     }
-                    else if (dropChance >= 35 && dropChance < 40) {//%5 ates hizi
-                        loots.push_back(Loot(fireTexture, enemies[j].getPosition(), LootType::FIRE_RATE));
+                    else if (dropChance >= 35 && dropChance < 40) {//%5 ates
+                        loots.push_back(Loot(fireTexture, enemies[j].getPosition(), LootType::FIRE_RATE, 8));
                     }
                     else if (dropChance >= 40 && dropChance < 42) {//%2 bomba
-                        loots.push_back(Loot(bombTexture, enemies[j].getPosition(), LootType::BOMB));
+                        loots.push_back(Loot(bombTexture, enemies[j].getPosition(), LootType::BOMB, 8));
                     }
 
                     enemies.erase(enemies.begin() + j);
