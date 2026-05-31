@@ -25,7 +25,7 @@ int main()
     window.setFramerateLimit(60);
     sf::Clock dtClock;
 
-    //Yuklemeler
+    //Oyun icin Yuklemeler
     sf::Font font1;
         if (!font1.loadFromFile("assets/fonts/pixel1.ttf")) std::cout << "ERROR: pixel1.ttf\n";
 
@@ -125,7 +125,8 @@ int main()
     std::vector<Enemy> enemies;
     std::vector<Loot> loots;
 
-     //UI ayarlari
+
+    //UI ayarlari
 
     int previousHp = myPlayer.getHp(); //HP animasyonu icin
     bool isHpAnimating = false;
@@ -151,25 +152,108 @@ int main()
     titleText.setFont(font2);
     titleText.setString("Top-Down Shooter");
     titleText.setCharacterSize(50);
-    titleText.setFillColor(sf::Color::White);
+    titleText.setFillColor(sf::Color::Black);
     sf::FloatRect titleBounds = titleText.getLocalBounds();
     titleText.setOrigin(titleBounds.left + titleBounds.width / 2.0f, titleBounds.top + titleBounds.height / 2.0f);
-    titleText.setPosition(1280.f / 2.0f, 200.f);
+    titleText.setPosition(1280.f / 2.0f, 100.f);
 
-    // Menu basla butonu
-    sf::RectangleShape startBtn(sf::Vector2f(200.f, 60.f));
-    startBtn.setFillColor(sf::Color::Blue);
-    sf::FloatRect btnBounds = startBtn.getLocalBounds();
-    startBtn.setOrigin(btnBounds.width / 2.0f, btnBounds.height / 2.0f);
-    startBtn.setPosition(1280.f / 2.0f, 350.f);
+    //Menu icin yuklemeler
+    sf::Texture tSky, tMountain, tGround, tCloud, tCactus, tTumbleweed, tGrass1, tGrass2;
+    sf::Texture tBtnStart, tBtnStartHover, tBtnExit, tBtnExitHover;
 
-    sf::Text startText; //basla butonundaki yazi
-    startText.setFont(font2);
-    startText.setString("Start");
-    startText.setCharacterSize(30);
-    sf::FloatRect startTextBounds = startText.getLocalBounds();
-    startText.setOrigin(startTextBounds.left + startTextBounds.width / 2.0f, startTextBounds.top + startTextBounds.height / 2.0f);
-    startText.setPosition(1280.f / 2.0f, 350.f);
+    if (!tSky.loadFromFile("assets/images/menu/bg-sky.png")) std::cout << "ERROR: bg-sky.png\n";
+    tSky.setSmooth(false);
+    if (!tMountain.loadFromFile("assets/images/menu/bg-back.png")) std::cout << "ERROR: bg-back.png\n";
+    tMountain.setSmooth(false);
+    if (!tGround.loadFromFile("assets/images/menu/bg-front.png")) std::cout << "ERROR: bg-front.png\n";
+    tGround.setSmooth(false);
+    if (!tBtnStart.loadFromFile("assets/images/menu/start-btn.png")) std::cout << "ERROR: start-btn.png\n";
+    tBtnStart.setSmooth(false);
+    if (!tBtnStartHover.loadFromFile("assets/images/menu/start-btn-hover.png")) std::cout << "ERROR: start-btn-hover.png\n";
+    tBtnStartHover.setSmooth(false);
+    if (!tBtnExit.loadFromFile("assets/images/menu/exit-btn.png")) std::cout << "ERROR: exit-btn.png\n";
+    tBtnExit.setSmooth(false);
+    if (!tBtnExitHover.loadFromFile("assets/images/menu/exit-btn-hover.png")) std::cout << "ERROR: exit-btn-hover.png\n";
+    tBtnExitHover.setSmooth(false);
+    if (!tCloud.loadFromFile("assets/images/menu/cloud.png")) std::cout << "ERROR: cloud.png\n";
+    tCloud.setSmooth(false);
+    if (!tCactus.loadFromFile("assets/images/menu/cactus.png")) std::cout << "ERROR: cactus.png\n";
+    tCactus.setSmooth(false);
+    if (!tTumbleweed.loadFromFile("assets/images/menu/tumbleweed.png")) std::cout << "ERROR: tumbleweed.png\n";
+    tTumbleweed.setSmooth(false);
+    if (!tGrass1.loadFromFile("assets/images/menu/grass1.png")) std::cout << "ERROR: grass1.png\n";
+    tGrass1.setSmooth(false);
+    if (!tGrass2.loadFromFile("assets/images/menu/grass2.png")) std::cout << "ERROR: grass2.png\n";
+    tGrass2.setSmooth(false);
+
+    //Kedi animasyonu icin
+    int catFrameWidth = playerTexture.getSize().x / 4;
+    int catFrameHeight = playerTexture.getSize().y;
+    int catCurrentFrame = 0;
+    float catAnimTimer = 0.f;
+
+    sf::Sprite menuPlayer(playerTexture);
+    menuPlayer.setScale(4.f, 4.f);
+    menuPlayer.setPosition(150.f, 468.f);
+
+    sf::Sprite sMenuStone(tileTextures[8]);
+    sMenuStone.setScale(2.f, 2.f);
+
+    sf::Sprite sSky(tSky), sMountain(tMountain), sGround(tGround), sCactus(tCactus), sTumbleweed(tTumbleweed), sGrass1(tGrass1), sGrass2(tGrass2);
+    sf::Sprite sBtnStart(tBtnStart), sBtnStartHover(tBtnStartHover), sBtnExit(tBtnExit), sBtnExitHover(tBtnExitHover);
+
+    sf::FloatRect twBounds = sTumbleweed.getLocalBounds();
+    sTumbleweed.setOrigin(twBounds.width / 2.f, twBounds.height / 2.f);
+
+    //Bulutlari kesme
+    int cloudHeight = tCloud.getSize().y;
+
+    sf::Sprite sCloud1(tCloud), sCloud2(tCloud), sCloud3(tCloud);
+
+    //sf::IntRect(Baslangic_X, Baslangic_Y, Genislik, Yukseklik)
+    sCloud1.setTextureRect(sf::IntRect(0, 0, 80, cloudHeight));
+    sCloud2.setTextureRect(sf::IntRect(80, 0, 100, cloudHeight));
+    sCloud3.setTextureRect(sf::IntRect(160, 0, 200, cloudHeight));
+
+    sSky.setScale(2.f, 2.f);
+    sMountain.setScale(2.f, 2.f);
+    sGround.setScale(2.f, 2.f);
+    sCactus.setScale(2.f, 2.f);
+    sCloud1.setScale(2.f, 2.f);
+    sCloud2.setScale(2.f, 2.f);
+    sCloud3.setScale(2.f, 2.f);
+    sTumbleweed.setScale(2.f, 2.f);
+    sGrass1.setScale(2.f, 2.f);
+    sGrass2.setScale(2.f, 2.f);
+
+    sBtnStart.setPosition(500.f, 200.f);
+    sBtnStartHover.setPosition(494.f, 196.f);
+
+    sBtnExit.setPosition(500.f, 300.f);
+    sBtnExitHover.setPosition(496.f, 296.f);
+
+    float mountainX = 0.f;
+    float groundX = 0.f;
+    float cactusX = 1280.f;
+
+    float cloud1X = 100.f;   float cloud1Y = 20.f; //bulutlarin yeri
+    float cloud2X = 550.f;   float cloud2Y = 70.f;
+    float cloud3X = 1000.f;  float cloud3Y = 130.f;
+    float cloud4X = 1450.f;  float cloud4Y = 30.f;
+    float cloud5X = 1900.f;  float cloud5Y = 85.f;
+    float cloud6X = 2400.f;  float cloud6Y = 145.f;
+
+    float grass1_1X = 200.f;  float grass1_1Y = 550.f; //otlarin yeri
+    float grass1_2X = 900.f;  float grass1_2Y = 640.f;
+    float grass2_1X = 550.f;  float grass2_1Y = 675.f;
+    float grass2_2X = 1350.f; float grass2_2Y = 680.f;
+
+    float stoneX = 2500.f; //tasin yeri
+    float stoneY = 580.f;
+
+    float tumbleweedX = 1280.f + 1000.f;
+    float tumbleweedY = 600.f;
+
 
     // Game Over yazisi
     sf::Text gameOverText;
@@ -231,18 +315,120 @@ int main()
      bool isMouseClicked = sf::Mouse::isButtonPressed(sf::Mouse::Left);
 
      switch (currentState) {
-      case GameState::MENU:
-            // Basla butonunun üzerine gelince
-            if (startBtn.getGlobalBounds().contains(mousePosWorld)) {
-                startBtn.setFillColor(sf::Color::Cyan);
+      case GameState::MENU: {
 
+            catAnimTimer += dt;
+            if (catAnimTimer >= 0.1f) {
+                catCurrentFrame++;
+                if (catCurrentFrame >= 4) {
+                    catCurrentFrame = 0;
+                }
+                catAnimTimer = 0.f;
+            }
+
+            menuPlayer.setTextureRect(sf::IntRect(catCurrentFrame * catFrameWidth, 0, catFrameWidth, catFrameHeight));
+
+            float currentCatY = 468.f;
+
+        if (catCurrentFrame == 1 || catCurrentFrame == 3) { //adim attiginda yukarı cikmasi
+            currentCatY = 464.f;
+        }
+
+        menuPlayer.setPosition(150.f, currentCatY);
+
+            mountainX -= 30.f * dt; //ekrandakilerin hizlari
+            groundX -= 120.f * dt;
+            cactusX -= 120.f * dt;
+            cloud1X -= 14.f * dt;
+            cloud2X -= 11.f * dt;
+            cloud3X -= 18.f * dt;
+            cloud4X -= 15.f * dt;
+            cloud5X -= 12.f * dt;
+            cloud6X -= 17.f * dt;
+            grass1_1X -= 120.f * dt;
+            grass1_2X -= 120.f * dt;
+            grass2_1X -= 120.f * dt;
+            grass2_2X -= 120.f * dt;
+            stoneX -= 120.f * dt;
+            tumbleweedX -= 200.f * dt;
+
+            // Ekrani gecince basa sarma
+            if (mountainX <= -1280.f) mountainX = 0.f; //daglar
+
+            if (groundX <= -1280.f) groundX = 0.f; //zemin
+
+            if (cactusX <= -200.f) { //kaktus
+                cactusX = 1280.f + (rand() % 1000);
+            }
+
+            if (cloud1X <= -200.f) {  //bulutlar
+                cloud1X = 1280.f + (rand() % 300); cloud1Y = 20.f + (rand() % 25);
+            }
+
+            if (cloud2X <= -200.f) {
+                cloud2X = 1280.f + (rand() % 300); cloud2Y = 60.f + (rand() % 30);
+            }
+
+            if (cloud3X <= -200.f) {
+                cloud3X = 1280.f + (rand() % 300); cloud3Y = 110.f + (rand() % 40);
+            }
+
+            if (cloud4X <= -200.f) {
+                cloud4X = 1280.f + (rand() % 400); cloud4Y = 20.f + (rand() % 25);
+            }
+
+            if (cloud5X <= -200.f) {
+                cloud5X = 1280.f + (rand() % 400); cloud5Y = 60.f + (rand() % 30);
+            }
+
+            if (cloud6X <= -200.f) {
+                cloud6X = 1280.f + (rand() % 400); cloud6Y = 110.f + (rand() % 40);
+            }
+
+            if (grass1_1X <= -100.f) { //otlar
+                grass1_1X = 1280.f + (rand() % 400);
+                grass1_1Y = 550.f + (rand() % 50);
+            }
+            if (grass1_2X <= -100.f) {
+                grass1_2X = 1280.f + (rand() % 500);
+                grass1_2Y = 650.f + (rand() % 50);
+            }
+            if (grass2_1X <= -100.f) {
+                grass2_1X = 1280.f + (rand() % 450);
+                grass2_1Y = 590.f + (rand() % 50);
+            }
+            if (grass2_2X <= -100.f) {
+                grass2_2X = 1280.f + (rand() % 600);
+                grass2_2Y = 680.f + (rand() % 50);
+            }
+
+            if (stoneX <= -100.f) {
+                stoneX = 1280.f + 500.f + (rand() % 1000);
+                stoneY = 600.f + (rand() % 40);
+            }
+
+            sTumbleweed.rotate(-270.f * dt); //tumbleweed
+            if (tumbleweedX <= -100.f) {
+                tumbleweedX = 1280.f + 1500.f + (rand() % 3000);
+                tumbleweedY = 600.f + (rand() % 100);
+            }
+
+            // Start buton kontrolu
+            if (sBtnStart.getGlobalBounds().contains(mousePosWorld)) {
                 if (isMouseClicked && !mouseWasPressed) {
                     currentState = GameState::PLAYING;
                 }
-            } else {
-                startBtn.setFillColor(sf::Color::Blue);
             }
+
+            // Exit buton kontrolu
+            if (sBtnExit.getGlobalBounds().contains(mousePosWorld)) {
+                if (isMouseClicked && !mouseWasPressed) {
+                    window.close();
+                }
+            }
+
             break;
+      }
 
       case GameState::PLAYING: {
 
@@ -459,11 +645,80 @@ int main()
 
         switch (currentState)
         {
-            case GameState::MENU:
+            case GameState::MENU: {
+                window.draw(sSky);
+
+                //Daglar
+                sMountain.setPosition(mountainX, 0.f);
+                window.draw(sMountain);
+                sMountain.setPosition(mountainX + 1280.f, 0.f);
+                window.draw(sMountain);
+
+                //Bulutlar
+                sCloud1.setPosition(cloud1X, cloud1Y); //tip1
+                window.draw(sCloud1);
+                sCloud1.setPosition(cloud4X, cloud4Y);
+                window.draw(sCloud1);
+
+                sCloud2.setPosition(cloud2X, cloud2Y); //tip2
+                window.draw(sCloud2);
+                sCloud2.setPosition(cloud5X, cloud5Y);
+                window.draw(sCloud2);
+
+                sCloud3.setPosition(cloud3X, cloud3Y); //tip3
+                window.draw(sCloud3);
+                sCloud3.setPosition(cloud6X, cloud6Y);
+                window.draw(sCloud3);
+
+                //Zemin
+                sGround.setPosition(groundX, 0.f);
+                window.draw(sGround);
+                sGround.setPosition(groundX + 1280.f, 0.f);
+                window.draw(sGround);
+
+                //Otlar
+                sGrass1.setPosition(std::round(grass1_1X), std::round(grass1_1Y));
+                window.draw(sGrass1);
+
+                sGrass1.setPosition(std::round(grass1_2X), std::round(grass1_2Y));
+                window.draw(sGrass1);
+
+                sGrass2.setPosition(std::round(grass2_1X), std::round(grass2_1Y));
+                window.draw(sGrass2);
+
+                sGrass2.setPosition(std::round(grass2_2X), std::round(grass2_2Y));
+                window.draw(sGrass2);
+
+                //tas
+                sMenuStone.setPosition(stoneX, stoneY);
+                window.draw(sMenuStone);
+
+                //kaktus
+                sCactus.setPosition(cactusX, 385.f);
+                window.draw(sCactus);
+
+
+                //Start butonu ve hover
+                window.draw(sBtnStart);
+                if (sBtnStart.getGlobalBounds().contains(mousePosWorld)) {
+                    window.draw(sBtnStartHover);
+                }
+
+                window.draw(sBtnExit);
+                if (sBtnExit.getGlobalBounds().contains(mousePosWorld)) {
+                    window.draw(sBtnExitHover);
+                }
+
+                window.draw(menuPlayer);
+
+                //tumbleweed
+                sTumbleweed.setPosition(tumbleweedX, tumbleweedY);
+                window.draw(sTumbleweed);
+
                 window.draw(titleText);
-                window.draw(startBtn);
-                window.draw(startText);
                 break;
+
+            }
 
             case GameState::PLAYING: {
 

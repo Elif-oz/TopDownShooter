@@ -141,8 +141,17 @@ void Player::update(float dt, sf::RenderWindow& window) { //Hareket ve yon
 
 void Player::draw(sf::RenderWindow& window) {
     if (isVisible) {
+        float bobOffset = 0.f;
+
+        if (currentFrame == 1 || currentFrame == 3) {
+            bobOffset = -4.f;
+        }
+        bodySprite.move(0.f, bobOffset);
+
         window.draw(bodySprite);
         window.draw(weaponSprite);
+
+        bodySprite.move(0.f, -bobOffset);
     }
 }
 
@@ -252,7 +261,7 @@ void Player::heal(int amount) {
         maxHp += amount;
         hp = maxHp;
      }
-    // can sýnýrlarý
+    // can siniri
     if (hp > maxHp) hp = maxHp;
     if (maxHp > 5) maxHp = 5;
 }
