@@ -63,6 +63,8 @@ class Player
 
     void activateSpeedBoost();
     void activateFireRateBoost();
+
+    float getScaleX() const;
 };
 
 #endif // PLAYER_H

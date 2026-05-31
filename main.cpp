@@ -27,15 +27,55 @@ int main()
 
     //Oyun icin Yuklemeler
     sf::Font font1;
-        if (!font1.loadFromFile("assets/fonts/pixel1.ttf")) std::cout << "ERROR: pixel1.ttf\n";
+        if (!font1.loadFromFile("assets/fonts/pixel1.ttf")) std::cout << "ERROR: pixel1.ttf\n";//fontlar
 
     sf::Font font2;
         if (!font2.loadFromFile("assets/fonts/pixel.ttf")) std::cout << "ERROR: pixel.ttf\n";
 
     sf::SoundBuffer shootBuffer;
-    if (!shootBuffer.loadFromFile("assets/sounds/Shoot.wav")) std::cout << "ERROR: Shoot.wav\n";
+    if (!shootBuffer.loadFromFile("assets/sounds/Shoot.wav")) std::cout << "ERROR: Shoot.wav\n";//sesler
     sf::Sound shootSound;
     shootSound.setBuffer(shootBuffer);
+
+    sf::SoundBuffer coinBuffer;
+    if (!coinBuffer.loadFromFile("assets/sounds/coin.wav")) std::cout << "ERROR: coin.wav\n";
+    sf::Sound coinSound;
+    coinSound.setBuffer(coinBuffer);
+
+    sf::SoundBuffer lifeBuffer;
+    if (!lifeBuffer.loadFromFile("assets/sounds/life.wav")) std::cout << "ERROR: life.wav\n";
+    sf::Sound lifeSound;
+    lifeSound.setBuffer(lifeBuffer);
+
+    sf::SoundBuffer speedBuffer;
+    if (!speedBuffer.loadFromFile("assets/sounds/speed.wav")) std::cout << "ERROR: speed.wav\n";
+    sf::Sound speedSound;
+    speedSound.setBuffer(speedBuffer);
+
+    sf::SoundBuffer fireBuffer;
+    if (!fireBuffer.loadFromFile("assets/sounds/fire.wav")) std::cout << "ERROR: fire.wav\n";
+    sf::Sound fireSound;
+    fireSound.setBuffer(fireBuffer);
+
+    sf::SoundBuffer bombBuffer;
+    if (!bombBuffer.loadFromFile("assets/sounds/bomb.wav")) std::cout << "ERROR: bomb.wav\n";
+    sf::Sound bombSound;
+    bombSound.setBuffer(bombBuffer);
+
+    sf::SoundBuffer hitBuffer;
+    if (!hitBuffer.loadFromFile("assets/sounds/hitHurt.wav")) std::cout << "ERROR: hitHurt.wav\n";
+    sf::Sound hitSound;
+    hitSound.setBuffer(hitBuffer);
+
+    sf::Music menuMusic;
+    if (!menuMusic.openFromFile("assets/sounds/menu_music.mp3")) std::cout << "ERROR: menu_music.mp3\n";
+    menuMusic.setLoop(true);
+    menuMusic.play();
+
+    sf::SoundBuffer gameOverBuffer;
+    if (!gameOverBuffer.loadFromFile("assets/sounds/gameover.mp3")) std::cout << "ERROR: gameover.mp3\n";
+    sf::Sound gameOverSound;
+    gameOverSound.setBuffer(gameOverBuffer);
 
     sf::Texture bulletTexture;
     if (!bulletTexture.loadFromFile("assets/images/bullet.png")) std::cout << "ERROR: bullet.png\n";
@@ -44,6 +84,14 @@ int main()
     sf::Texture playerTexture;
     if (!playerTexture.loadFromFile("assets/images/player.png")) std::cout << "ERROR: player.png\n";
     playerTexture.setSmooth(false);
+
+    sf::Texture tDamagedHat;
+    if (!tDamagedHat.loadFromFile("assets/images/damaged_hat.png")) std::cout << "ERROR: damaged_hat.png\n";
+    tDamagedHat.setSmooth(false);
+
+    sf::Texture tDeathAnim;
+    if (!tDeathAnim.loadFromFile("assets/images/player_hurt.png")) std::cout << "ERROR: player_hurt\n";
+    tDeathAnim.setSmooth(false);
 
     sf::Texture weaponTexture;
     if (!weaponTexture.loadFromFile("assets/images/weapon.png")) std::cout << "ERROR: weapon.png\n";
@@ -265,19 +313,60 @@ int main()
     gameOverText.setOrigin(goBounds.left + goBounds.width / 2.0f, goBounds.top + goBounds.height / 2.0f);
     gameOverText.setPosition(1280.f / 2.0f, 230.f);
 
-    // Tekrar oyna butonu
-    sf::RectangleShape restartBtn(sf::Vector2f(250.f, 60.f));
-    restartBtn.setFillColor(sf::Color::Blue);
-    sf::FloatRect rBtnBounds = restartBtn.getLocalBounds();
-    restartBtn.setOrigin(rBtnBounds.width / 2.0f, rBtnBounds.height / 2.0f);
-    restartBtn.setPosition(1280.f / 2.0f, 450.f);
+    sf::Sprite sDamagedHat(tDamagedHat); //Game over ekrani icin
+    sDamagedHat.setScale(4.f, 4.f);
+    sf::FloatRect hatBounds = sDamagedHat.getLocalBounds();
+    sDamagedHat.setOrigin(hatBounds.width / 2.0f, hatBounds.height / 2.0f);
+    sDamagedHat.setPosition(1280.f / 2.0f, 220.f);
+
+    sf::Sprite sDeathAnim(tDeathAnim);
+    sDeathAnim.setScale(2.f, 2.f);
+    int deathFrameWidth = tDeathAnim.getSize().x / 5;
+    int deathFrameHeight = tDeathAnim.getSize().y;
+    sDeathAnim.setOrigin(deathFrameWidth / 2.f, deathFrameHeight / 2.f);
+    sDeathAnim.setTextureRect(sf::IntRect(0, 0, deathFrameWidth, deathFrameHeight));
+
+    int deathCurrentFrame = 0;
+    float deathAnimClock = 0.f;
+    bool isDeathAnimFinished = false;
+
+    sf::Texture tEmptyBtn, tEmptyBtnHover; //buton gorsel yuklemesi
+    if (!tEmptyBtn.loadFromFile("assets/images/empty_btn.png")) std::cout << "ERROR: empty_btn.png\n";
+    if (!tEmptyBtnHover.loadFromFile("assets/images/empty_btn_hover.png")) std::cout << "ERROR: empty_btn_hover.png\n";
+    tEmptyBtn.setSmooth(false);
+    tEmptyBtnHover.setSmooth(false);
+
+    //tekrar oyna butonu
+    sf::Sprite sRestartBg(tEmptyBtn);
+    sf::Sprite sRestartBgHover(tEmptyBtnHover);
+    sRestartBg.setScale(2.f, 2.f);
+    sRestartBgHover.setScale(2.f, 2.f);
+    sf::FloatRect btnBounds = sRestartBg.getLocalBounds();
+    sf::FloatRect hoverBounds = sRestartBgHover.getLocalBounds();
+    sRestartBg.setOrigin(btnBounds.width / 2.f, btnBounds.height / 2.f);
+    sRestartBgHover.setOrigin(hoverBounds.width / 2.f, hoverBounds.height / 2.f);
+
+    // Exit butonu
+    sf::Sprite sExitBg(tEmptyBtn);
+    sf::Sprite sExitBgHover(tEmptyBtnHover);
+    sExitBg.setScale(2.f, 2.f);
+    sExitBgHover.setScale(2.f, 2.f);
+    sExitBg.setOrigin(btnBounds.width / 2.f, btnBounds.height / 2.f);
+    sExitBgHover.setOrigin(hoverBounds.width / 2.f, hoverBounds.height / 2.f);
+
+    sf::Text goExitText; //exit yazisi
+    goExitText.setFont(font2);
+    goExitText.setString("Exit");
+    goExitText.setCharacterSize(25);
+    sf::FloatRect eTextBounds = goExitText.getLocalBounds();
+    goExitText.setOrigin(std::round(eTextBounds.left + eTextBounds.width / 2.0f), std::round(eTextBounds.top + eTextBounds.height / 2.0f));
 
     sf::Text restartText; //tekrar oyna yazisi
     restartText.setFont(font2);
     restartText.setString("Play Again");
     restartText.setCharacterSize(25);
     sf::FloatRect rTextBounds = restartText.getLocalBounds();
-    restartText.setOrigin(rTextBounds.left + rTextBounds.width / 2.0f, rTextBounds.top + rTextBounds.height / 2.0f);
+    restartText.setOrigin(std::round(rTextBounds.left + rTextBounds.width / 2.0f), std::round(rTextBounds.top + rTextBounds.height / 2.0f));
     restartText.setPosition(1280.f / 2.0f, 450.f);
 
     WaveManager waveManager;   //Wave yazilari
@@ -292,6 +381,10 @@ int main()
     waveCenterText.setFont(font1);
     waveCenterText.setCharacterSize(50);
     waveCenterText.setFillColor(sf::Color::White);
+
+    sf::Clock gameOverTimer;
+    float fadeAlpha = 0.f;
+    bool isDeadSequence = false;
 
     // Oyunun baslangic durumu
     GameState currentState = GameState::MENU;
@@ -416,6 +509,7 @@ int main()
             // Start buton kontrolu
             if (sBtnStart.getGlobalBounds().contains(mousePosWorld)) {
                 if (isMouseClicked && !mouseWasPressed) {
+                    menuMusic.stop();
                     currentState = GameState::PLAYING;
                 }
             }
@@ -512,10 +606,25 @@ int main()
                  if (!myPlayer.checkInvincible()) {
 
                     myPlayer.takeDamage();
+                    hitSound.play();
 
                     if (myPlayer.getHp() <= 0) {
                         std::cout << "Game Over!" << std::endl;
+                        gameOverSound.play();
                         currentState = GameState::GAMEOVER;
+                        isDeadSequence = true;
+                        gameOverTimer.restart();
+                        fadeAlpha = 0.f;
+                        isDeathAnimFinished = false;
+                        deathCurrentFrame = 0;
+                        deathAnimClock = 0.f;
+                        sDeathAnim.setPosition(myPlayer.getPosition());
+
+                        if (myPlayer.getScaleX() < 0) {
+                            sDeathAnim.setScale(-2.f, 2.f);
+                        } else {
+                            sDeathAnim.setScale(2.f, 2.f);
+                        }
                     }
                  }
 
@@ -556,6 +665,7 @@ int main()
                     bullets.erase(bullets.begin() + i);
                     myPlayer.addScore(10);
                     std::cout << "Enemy destroyed! Score: " << myPlayer.getScore() << std::endl;
+                    hitSound.play();
                     bulletDestroyed = true;
 
                     break;
@@ -570,19 +680,24 @@ int main()
 
                 if (loots[i].getType() == LootType::HEALTH) {
                     myPlayer.heal(1);
+                    lifeSound.play();
                 }
                 else if (loots[i].getType() == LootType::SCORE) {
                     myPlayer.addScore(50);
+                    coinSound.play();
                 }
                 else if (loots[i].getType() == LootType::SPEED_BOOST) {
                     myPlayer.activateSpeedBoost();
+                    speedSound.play();
                 }
                 else if (loots[i].getType() == LootType::FIRE_RATE) {
                     myPlayer.activateFireRateBoost();
+                    fireSound.play();
                 }
                 else if (loots[i].getType() == LootType::BOMB) {
                     myPlayer.addScore(enemies.size() * 10);
                     enemies.clear();
+                    bombSound.play();
                 }
 
                 loots.erase(loots.begin() + i);
@@ -619,23 +734,67 @@ int main()
      }
 
      case GameState::GAMEOVER: {
-            // Tekrar oyna butonunun uzerine gelince
-            if (restartBtn.getGlobalBounds().contains(mousePosWorld)) {
-                restartBtn.setFillColor(sf::Color::Cyan);
+         if (!isDeathAnimFinished) {
+             deathAnimClock += dt;
 
-                if (isMouseClicked && !mouseWasPressed) {
-                    bullets.clear();
-                    enemies.clear();
-                    loots.clear();
-                    myPlayer.reset(sf::Vector2f(640.f, 384.f));
-                    waveManager.reset();
-                    previousHp = myPlayer.getHp();
-                    currentState = GameState::PLAYING;
+             if (deathAnimClock >= 0.15f) {
+                 deathCurrentFrame++;
+                 deathAnimClock = 0.f;
+
+                 if (deathCurrentFrame >= 5) {
+                     deathCurrentFrame = 4;
+                     isDeathAnimFinished = true;
+
+                     gameOverTimer.restart();
+                    }
                 }
-            } else {
-                restartBtn.setFillColor(sf::Color::Blue);
+
+             if (deathCurrentFrame == 1) {
+                        sDeathAnim.setPosition(myPlayer.getPosition().x, myPlayer.getPosition().y - 10.f);
+                    } else {
+                        sDeathAnim.setPosition(myPlayer.getPosition().x, myPlayer.getPosition().y);
+                    }
+
+                    sDeathAnim.setTextureRect(sf::IntRect(deathCurrentFrame * deathFrameWidth, 0, deathFrameWidth, deathFrameHeight));
+                }
+
+           else {
+
+            float goTime = gameOverTimer.getElapsedTime().asSeconds();
+
+            // 3.5 saniye sonra butonlar aktif
+            if (goTime > 3.5f) {
+
+                sRestartBg.setPosition(1280.f / 2.0f, 550.f); //tekrar oyna butonu yeri
+                sRestartBgHover.setPosition(1280.f / 2.0f, 550.f);
+
+                sExitBg.setPosition(1280.f / 2.0f, 630.f); //exit butonu yeri
+                sExitBgHover.setPosition(1280.f / 2.0f, 630.f);
+
+                // Play Again Butonu
+                if (sRestartBg.getGlobalBounds().contains(mousePosWorld)) {
+
+                    if (isMouseClicked && !mouseWasPressed) {
+                        bullets.clear();
+                        enemies.clear();
+                        loots.clear();
+                        myPlayer.reset(sf::Vector2f(640.f, 384.f));
+                        waveManager.reset();
+                        previousHp = myPlayer.getHp();
+
+                        isDeadSequence = false;
+                        currentState = GameState::PLAYING;
+                    }
+                }
+                //exit butonu
+                if (sExitBg.getGlobalBounds().contains(mousePosWorld)) {
+                    if (isMouseClicked && !mouseWasPressed) {
+                        window.close();
+                    }
+                }
             }
-            break;
+           }
+           break;
       }
     }
 
@@ -779,19 +938,83 @@ int main()
                 break;
             }
 
-            case GameState::GAMEOVER:
-                window.draw(gameOverText);
-                window.draw(restartBtn);
-                window.draw(restartText);
+            case GameState::GAMEOVER:{
 
-                sf::FloatRect scoreBounds = scoreText.getLocalBounds();
-                scoreText.setOrigin(scoreBounds.left + scoreBounds.width / 2.0f, scoreBounds.top + scoreBounds.height / 2.0f);
-                scoreText.setPosition(1280.f / 2.0f, 340.f);
-                window.draw(scoreText);
+                for (int i = 0; i < MAP_ROWS; i++) {
+                    for (int j = 0; j < MAP_COLS; j++) {
+                        int tileID = tileMap[i][j];
+                        if (tileID >= 4) {
+                            tileSprite.setTexture(tileTextures[0]);
+                            tileSprite.setPosition(j * 64.f, i * 64.f);
+                            window.draw(tileSprite);
+                        }
+                        tileSprite.setTexture(tileTextures[tileID]);
+                        tileSprite.setPosition(j * 64.f, i * 64.f);
+                        window.draw(tileSprite);
+                    }
+                }
+                window.draw(sDeathAnim);
+                for (size_t i = 0; i < bullets.size(); i++) bullets[i].draw(window);
+                for (size_t i = 0; i < enemies.size(); i++) enemies[i].draw(window);
+                for (size_t i = 0; i < loots.size(); i++) loots[i].draw(window);
 
-                scoreText.setOrigin(0.f, 0.f);
-                scoreText.setPosition(20.f, 60.f);
+                if (isDeathAnimFinished) {
+                    float goTime = gameOverTimer.getElapsedTime().asSeconds();
+
+                    if (goTime < 2.0f) {
+                        fadeAlpha = (goTime / 2.0f) * 220.f;
+                    } else {
+                        fadeAlpha = 220.f;
+                    }
+
+                sf::RectangleShape darkOverlay(sf::Vector2f(1280.f, 768.f));
+                darkOverlay.setFillColor(sf::Color(0, 0, 0, (sf::Uint8)fadeAlpha));
+                window.draw(darkOverlay);
+
+                if (goTime > 2.0f) {
+
+                    sf::FloatRect goBounds = gameOverText.getLocalBounds();
+                    gameOverText.setOrigin(goBounds.left + goBounds.width / 2.0f, goBounds.top + goBounds.height / 2.0f);
+                    gameOverText.setPosition(1280.f / 2.0f, 400.f);
+
+                    window.draw(sDamagedHat);
+                    window.draw(gameOverText);
+                }
+
+                if (goTime > 3.5f) {
+                    //tekrar oyna butonunu cizme
+                    if (sRestartBg.getGlobalBounds().contains(mousePosWorld)) {
+                        window.draw(sRestartBgHover);
+                    } else {
+                        window.draw(sRestartBg);
+                    }
+                    restartText.setPosition(std::round(1280.f / 2.0f), std::round(550.f));
+                    window.draw(restartText);
+
+                    // Exit Butonunu cizme
+                    if (sExitBg.getGlobalBounds().contains(mousePosWorld)) {
+                        window.draw(sExitBgHover);
+                    } else {
+                        window.draw(sExitBg);
+                    }
+
+                    goExitText.setPosition(std::round(1280.f / 2.0f), std::round(630.f));
+                    window.draw(goExitText);
+
+                    // Skor merkezde
+                    sf::FloatRect scoreBounds = scoreText.getLocalBounds();
+                    scoreText.setOrigin(scoreBounds.left + scoreBounds.width / 2.0f, scoreBounds.top + scoreBounds.height / 2.0f);
+                    scoreText.setPosition(1280.f / 2.0f, 480.f);
+                    window.draw(scoreText);
+
+                    // eski yerine sifirla
+                    scoreText.setOrigin(0.f, 0.f);
+                    scoreText.setPosition(20.f, 100.f);
+                }
+              }
+
                 break;
+            }
         }
 
        window.display();

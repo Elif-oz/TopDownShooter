@@ -278,3 +278,7 @@ void Player::activateFireRateBoost() {
     fireRateTimer.restart();
 }
 
+float Player::getScaleX() const {
+    return bodySprite.getScale().x;
+}
+
