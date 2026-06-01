@@ -22,6 +22,12 @@ int main()
 {
     srand(static_cast<unsigned>(time(NULL)));
     sf::RenderWindow window(sf::VideoMode(1280, 768), "Top-Down Shooter");
+
+    sf::Image windowIcon;
+    if (windowIcon.loadFromFile("assets/images/icon.png")) {
+      window.setIcon(windowIcon.getSize().x, windowIcon.getSize().y, windowIcon.getPixelsPtr()); //icon
+    }
+
     window.setFramerateLimit(60);
     sf::Clock dtClock;
 
@@ -384,7 +390,6 @@ int main()
 
     sf::Clock gameOverTimer;
     float fadeAlpha = 0.f;
-    bool isDeadSequence = false;
 
     // Oyunun baslangic durumu
     GameState currentState = GameState::MENU;
@@ -612,7 +617,6 @@ int main()
                         std::cout << "Game Over!" << std::endl;
                         gameOverSound.play();
                         currentState = GameState::GAMEOVER;
-                        isDeadSequence = true;
                         gameOverTimer.restart();
                         fadeAlpha = 0.f;
                         isDeathAnimFinished = false;
@@ -707,7 +711,6 @@ int main()
 
         //HP kontrolu ve animasyonu
         int currentHP = myPlayer.getHp();
-        int maxHP = myPlayer.getMaxHp();
 
         if (currentHP < previousHp) {
             isHpAnimating = true;
@@ -782,7 +785,6 @@ int main()
                         waveManager.reset();
                         previousHp = myPlayer.getHp();
 
-                        isDeadSequence = false;
                         currentState = GameState::PLAYING;
                     }
                 }

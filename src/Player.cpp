@@ -14,7 +14,7 @@ Player::Player(sf::Texture& playerTex, sf::Texture& weaponTex, sf::Vector2f star
     weaponSprite.setScale(2.f, 2.f);
 
     sf::FloatRect pBounds = bodySprite.getLocalBounds();
-    bodySprite.setOrigin(16.f, 16.f);
+    bodySprite.setOrigin(pBounds.width / 2.f, pBounds.height / 2.f);
 
     sf::FloatRect wBounds = weaponSprite.getLocalBounds();
     // Silahin origin'i sol orta kisma alindi ki oradan donsun
